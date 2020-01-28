@@ -116,7 +116,7 @@ struct Node
 	void addOrderedNodes(const char* name, std::vector<Node*>& orderedNodes) {
 		if ( !fOrdered ) {
 			orderedNodes.push_back(this);
-			//fprintf(stderr, "ordered %p %s\n", this, fCummulativeString);
+			fprintf(stderr, "ordered %p %s\n", this, fCummulativeString);
 			fOrdered = true;
 		}
 		const char* partialStr = &name[strlen(fCummulativeString)];
@@ -160,7 +160,7 @@ struct Node
 		}
 		bool result = (fTrieOffset != offset);
 		fTrieOffset = offset;
-		//fprintf(stderr, "updateOffset %p %05d %s\n", this, fTrieOffset, fCummulativeString);
+		fprintf(stderr, "updateOffset %p %05d %s\n", this, fTrieOffset, fCummulativeString);
 		offset += nodeSize;
 		// return true if fTrieOffset was changed
 		return result;

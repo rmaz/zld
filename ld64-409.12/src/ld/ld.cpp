@@ -200,8 +200,8 @@ InternalState::FinalSection::FinalSection(const ld::Section& sect, uint32_t sect
 	  _segmentOrder(segmentOrder(sect, opts)),
 	  _sectionOrder(sectionOrder(sect, sectionsSeen, opts))
 {
-	//fprintf(stderr, "FinalSection(%16s, %16s) _segmentOrder=%3d, _sectionOrder=0x%08X\n",
-	//		this->segmentName(), this->sectionName(), _segmentOrder, _sectionOrder);
+	fprintf(stderr, "FinalSection(%16s, %16s) _segmentOrder=%3d, _sectionOrder=0x%08X\n",
+	this->segmentName(), this->sectionName(), _segmentOrder, _sectionOrder);
 }
 
 const ld::Section& InternalState::FinalSection::outputSection(const ld::Section& sect, bool mergeZeroFill)
@@ -453,12 +453,12 @@ uint32_t InternalState::FinalSection::sectionOrder(const ld::Section& sect, uint
 #ifndef NDEBUG
 static void validateFixups(const ld::Atom& atom)
 {
-	//fprintf(stderr, "validateFixups %s\n", atom.name());
+	fprintf(stderr, "validateFixups %s\n", atom.name());
 	bool lastWasClusterEnd = true;
 	ld::Fixup::Cluster lastClusterSize = ld::Fixup::k1of1;
 	uint32_t curClusterOffsetInAtom = 0;
 	for (ld::Fixup::iterator fit=atom.fixupsBegin(); fit != atom.fixupsEnd(); ++fit) {
-		//fprintf(stderr, "  fixup offset=%d, cluster=%d\n", fit->offsetInAtom, fit->clusterSize);
+		fprintf(stderr, "  fixup offset=%d, cluster=%d\n", fit->offsetInAtom, fit->clusterSize);
 		assert((fit->offsetInAtom <= atom.size()) || (fit->offsetInAtom == 0));
 		if ( fit->firstInCluster() ) {
 			assert(lastWasClusterEnd);
@@ -645,7 +645,7 @@ bool InternalState::inMoveROChain(const ld::Atom& atom, const char* filePath, co
 
 ld::Internal::FinalSection* InternalState::addAtom(const ld::Atom& atom)
 {
-	//fprintf(stderr, "addAtom: %s\n", atom.name());
+	fprintf(stderr, "addAtom: %s\n", atom.name());
 	ld::Internal::FinalSection* fs = NULL;
 	const char* curSectName = atom.section().sectionName();
 	const char* curSegName = atom.section().segmentName();
@@ -755,7 +755,7 @@ ld::Internal::FinalSection* InternalState::addAtom(const ld::Atom& atom)
 			printf("symbol '%s', use default mapping to %s/%s\n", atom.name(), fs->segmentName(), fs->sectionName());
 	}
 
-	//fprintf(stderr, "InternalState::doAtom(%p), name=%s, sect=%s, finalseg=%s\n", &atom, atom.name(), atom.section().sectionName(), fs->segmentName());
+	fprintf(stderr, "InternalState::doAtom(%p), name=%s, sect=%s, finalseg=%s\n", &atom, atom.name(), atom.section().sectionName(), fs->segmentName());
 #ifndef NDEBUG
 	validateFixups(atom);
 #endif
@@ -817,7 +817,7 @@ ld::Internal::FinalSection* InternalState::getFinalSection(const ld::Section& in
 				pos = _sectionInToFinalMap.find(&outSect);
 				if ( pos != _sectionInToFinalMap.end() ) {
 					_sectionInToFinalMap[&inputSection] = pos->second;
-					//fprintf(stderr, "_sectionInToFinalMap[%p] = %p\n", &inputSection, pos->second);
+					fprintf(stderr, "_sectionInToFinalMap[%p] = %p\n", &inputSection, pos->second);
 					return pos->second;
 				}
 				else if ( outSect != inputSection ) {
@@ -831,7 +831,7 @@ ld::Internal::FinalSection* InternalState::getFinalSection(const ld::Section& in
 			pos = _sectionInToFinalMap.find(baseForFinalSection);
 			if ( pos != _sectionInToFinalMap.end() ) {
 				_sectionInToFinalMap[&inputSection] = pos->second;
-				//fprintf(stderr, "_sectionInToFinalMap[%p] = %p\n", &inputSection, pos->second);
+				fprintf(stderr, "_sectionInToFinalMap[%p] = %p\n", &inputSection, pos->second);
 				return pos->second;
 			}
 			break;
@@ -840,7 +840,7 @@ ld::Internal::FinalSection* InternalState::getFinalSection(const ld::Section& in
 	InternalState::FinalSection* result = new InternalState::FinalSection(*baseForFinalSection, 
 																	_sectionInToFinalMap.size(), _options);
 	_sectionInToFinalMap[baseForFinalSection] = result;
-	//fprintf(stderr, "_sectionInToFinalMap[%p(%s)] = %p\n", baseForFinalSection, baseForFinalSection->sectionName(), result);
+	fprintf(stderr, "_sectionInToFinalMap[%p(%s)] = %p\n", baseForFinalSection, baseForFinalSection->sectionName(), result);
 	sections.push_back(result);
 	return result;
 }
@@ -848,7 +848,7 @@ ld::Internal::FinalSection* InternalState::getFinalSection(const ld::Section& in
 
 void InternalState::sortSections()
 {
-	//fprintf(stderr, "UNSORTED final sections:\n");
+	fprintf(stderr, "UNSORTED final sections:\n");
 	//for (std::vector<ld::Internal::FinalSection*>::iterator it = sections.begin(); it != sections.end(); ++it) {
 	//	fprintf(stderr, "final section %p %s/%s\n", (*it), (*it)->segmentName(), (*it)->sectionName());
 	//}
@@ -859,7 +859,7 @@ void InternalState::sortSections()
 			return (left->_segmentOrder < right->_segmentOrder);
 		return (left->_sectionOrder < right->_sectionOrder);
 	});
-	//fprintf(stderr, "SORTED final sections:\n");
+	fprintf(stderr, "SORTED final sections:\n");
 	//for (std::vector<ld::Internal::FinalSection*>::iterator it = sections.begin(); it != sections.end(); ++it) {
 	//	fprintf(stderr, "final section %p %s/%s\n", (*it), (*it)->segmentName(), (*it)->sectionName());
 	//}

@@ -383,7 +383,7 @@ typename File<A>::MemberState& File<A>::makeObjectFileForMember(const Entry* mem
 	strcat(memberPath, "(");
 	strcat(memberPath, memberName);
 	strcat(memberPath, ")");
-	//fprintf(stderr, "using %s from %s\n", memberName, this->path());
+	fprintf(stderr, "using %s from %s\n", memberName, this->path());
 	try {
 		// range check
 		if ( member > (Entry*)(_archiveFileContent+_archiveFilelength) )
@@ -575,7 +575,7 @@ bool File<A>::justInTimeDataOnlyforEachAtom(const char* name, ld::File::AtomHand
 		}
 	}
 
-	//fprintf(stderr, "%s NOT found in archive %s\n", name, this->path());
+	fprintf(stderr, "%s NOT found in archive %s\n", name, this->path());
 	return false;
 }
 
@@ -594,7 +594,7 @@ void File<A>::buildHashTable()
 		}
 		
 		//const Entry* member = (Entry*)&_archiveFileContent[E::get32(entry->ran_off)];
-		//fprintf(stderr, "adding hash %d, %s -> %p\n", i, entryName, entry);
+		fprintf(stderr, "adding hash %d, %s -> %p\n", i, entryName, entry);
 		_hashTable[entryName] = offset;
 	}
 }
@@ -614,7 +614,7 @@ void File<A>::buildHashTable64()
 				entryName, entry->ran_off, _archiveFilelength);
 		}
 
-		//fprintf(stderr, "adding hash %d: %s -> 0x%0llX\n", i, entryName, offset);
+		fprintf(stderr, "adding hash %d: %s -> 0x%0llX\n", i, entryName, offset);
 		_hashTable[entryName] = offset;
 	}
 }

@@ -167,7 +167,7 @@ const ld::Atom* Pass::stubableFixup(const ld::Fixup* fixup, ld::Internal& state)
 
 ld::Atom* Pass::makeStub(const ld::Atom& target, bool weakImport)
 {
-	//fprintf(stderr, "makeStub(target=%p %s in sect %s, def=%d)\n", &target, target.name(), target.section().sectionName(), target.definition());
+	fprintf(stderr, "makeStub(target=%p %s in sect %s, def=%d)\n", &target, target.name(), target.section().sectionName(), target.definition());
 	bool stubToGlobalWeakDef = ( (target.combine() == ld::Atom::combineByName) &&
 								 (((target.definition() == ld::Atom::definitionRegular) && (target.scope() == ld::Atom::scopeGlobal))
 								  || (target.definition() == ld::Atom::definitionProxy)) );

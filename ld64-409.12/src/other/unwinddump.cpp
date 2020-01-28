@@ -249,7 +249,7 @@ const char* UnwindPrinter<A>::functionName(pint_t addr, uint32_t* offset)
 				value |= 1;
 			if ( value == addr ) {
 				const char* r = &fStrings[fSymbols[i].n_strx()];
-				//fprintf(stderr, "addr=0x%08llX, i=%u, n_type=0x%0X, r=%s\n", (long long)(fSymbols[i].n_value()), i,  fSymbols[i].n_type(), r);
+				fprintf(stderr, "addr=0x%08llX, i=%u, n_type=0x%0X, r=%s\n", (long long)(fSymbols[i].n_value()), i,  fSymbols[i].n_type(), r);
 				return r;
 			}
 			else if ( offset != NULL ) {

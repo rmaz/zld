@@ -593,7 +593,7 @@ void Atom::setCompiledAtom(const ld::Atom& atom)
 	// set delegate so virtual methods go to it
 	_compiledAtom = &atom;
 	
-	//fprintf(stderr, "setting lto atom %p to delegate to mach-o atom %p (%s)\n", this, &atom, atom.name());
+	fprintf(stderr, "setting lto atom %p to delegate to mach-o atom %p (%s)\n", this, &atom, atom.name());
 	
 	// update fields in ld::Atom to match newly constructed mach-o atom
 	(const_cast<Atom*>(this))->setAttributesFromAtom(atom);
@@ -1027,7 +1027,7 @@ bool Parser::optimizeLTO(const std::vector<File*>				files,
 	for (CStringToAtom::iterator li = llvmAtoms.begin(), le = llvmAtoms.end(); li != le; ++li) {
 		// check if setRealAtom() called on this Atom
 		if ( li->second->compiledAtom() == NULL ) {
-			//fprintf(stderr, "llvm optimized away %p %s\n", li->second, li->second->name());
+			fprintf(stderr, "llvm optimized away %p %s\n", li->second, li->second->name());
 			li->second->setCoalescedAway();
 		}
 	}
@@ -1407,7 +1407,7 @@ bool Parser::optimizeThinLTO(const std::vector<File*>&              files,
 	for (CStringToAtom::iterator li = llvmAtoms.begin(), le = llvmAtoms.end(); li != le; ++li) {
 		// check if setRealAtom() called on this Atom
 		if ( li->second->compiledAtom() == NULL ) {
-			//fprintf(stderr, "llvm optimized away %p %s\n", li->second, li->second->name());
+			fprintf(stderr, "llvm optimized away %p %s\n", li->second, li->second->name());
 			li->second->setCoalescedAway();
 		}
 	}
@@ -1577,14 +1577,14 @@ void Parser::AtomSyncer::doAtom(const ld::Atom& machoAtom, FastFileMap *fileMap)
 						}
 					}
 				}
-				//fprintf(stderr, "    direct ref to: %s (scope=%d)\n", fit->u.target->name(), fit->u.target->scope());
+				fprintf(stderr, "    direct ref to: %s (scope=%d)\n", fit->u.target->name(), fit->u.target->scope());
 				break;
 			case ld::Fixup::bindingByContentBound:
-				//fprintf(stderr, "    direct by content to: %s\n", fit->u.target->name());
+				fprintf(stderr, "    direct by content to: %s\n", fit->u.target->name());
 				break;
 			case ld::Fixup::bindingsIndirectlyBound:
 				assert(0 && "indirect binding found in initial mach-o file?");
-				//fprintf(stderr, "    indirect by content to: %u\n", fit->u.bindingIndex);
+				fprintf(stderr, "    indirect by content to: %u\n", fit->u.bindingIndex);
 				break;
 		}
 	}

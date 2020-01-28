@@ -663,7 +663,7 @@ void Resolver::doFile(const ld::File& file)
 
 void Resolver::doAtom(const ld::Atom& atom, FastFileMap *fileMap)
 {
-	//fprintf(stderr, "Resolver::doAtom(%p), name=%s, sect=%s, scope=%d\n", &atom, atom.name(), atom.section().sectionName(), atom.scope());
+	fprintf(stderr, "Resolver::doAtom(%p), name=%s, sect=%s, scope=%d\n", &atom, atom.name(), atom.section().sectionName(), atom.scope());
 	if ( _ltoCodeGenFinished && (atom.contentType() == ld::Atom::typeLTOtemporary) && (atom.scope() != ld::Atom::scopeTranslationUnit) )
 		warning("'%s' is implemented in bitcode, but it was loaded too late", atom.name());
 
@@ -718,7 +718,7 @@ void Resolver::doAtom(const ld::Atom& atom, FastFileMap *fileMap)
 				// check for globals that are downgraded to hidden
 				if ( ! _options.shouldExport(name) ) {
 					(const_cast<ld::Atom*>(&atom))->setScope(ld::Atom::scopeLinkageUnit);
-					//fprintf(stderr, "demote %s to hidden\n", name);
+					fprintf(stderr, "demote %s to hidden\n", name);
 				}
 				if ( _options.canReExportSymbols() && _options.shouldReExport(name) ) {
 					throwf("requested re-export symbol %s is not from a dylib, but from %s\n", _options.demangleSymbol(name), atom.safeFilePath());
@@ -989,7 +989,7 @@ void Resolver::resolveUndefines()
 
 void Resolver::markLive(const ld::Atom& atom, WhyLiveBackChain* previous)
 {
-	//fprintf(stderr, "markLive(%p) %s\n", &atom, atom.name());
+	fprintf(stderr, "markLive(%p) %s\n", &atom, atom.name());
 	// if -why_live cares about this symbol, then dump chain
 	if ( (previous->referer != NULL) && _options.printWhyLive(atom.name()) ) {
 		fprintf(stderr, "%s from %s\n", atom.name(), atom.safeFilePath());
@@ -1164,7 +1164,7 @@ void Resolver::deadStripOptimize(bool force)
 	for (std::vector<const ld::Atom*>::const_iterator it=_atoms.begin(); it != _atoms.end(); ++it) {
 		const ld::Atom* atom = *it;
 		if ( atom->dontDeadStrip() ) {
-			//fprintf(stderr, "dont dead strip: %p %s %s\n", atom, atom->section().sectionName(), atom->name());
+			fprintf(stderr, "dont dead strip: %p %s %s\n", atom, atom->section().sectionName(), atom->name());
 			_deadStripRoots.insert(atom);
 			// unset liveness, so markLive() will recurse
 			(const_cast<ld::Atom*>(atom))->setLive(0);
@@ -1183,7 +1183,7 @@ void Resolver::deadStripOptimize(bool force)
 	if ( ! _dontDeadStripIfReferencesLive.empty() ) {
 		for (std::vector<const ld::Atom*>::iterator it=_dontDeadStripIfReferencesLive.begin(); it != _dontDeadStripIfReferencesLive.end(); ++it) {
 			const Atom* liveIfRefLiveAtom = *it;
-			//fprintf(stderr, "live-if-live atom: %s\n", liveIfRefLiveAtom->name());
+			fprintf(stderr, "live-if-live atom: %s\n", liveIfRefLiveAtom->name());
 			if ( liveIfRefLiveAtom->live() )
 				continue;
 			bool hasLiveRef = false;

@@ -348,7 +348,7 @@ const ld::Atom* Layout::findAtom(const Options::OrderedSymbol& orderedSymbol)
 	NameToAtom::iterator pos = _nameTable.find(orderedSymbol.symbolName);
 	if ( pos != _nameTable.end() ) {
 		if ( (pos->second != NULL) && matchesObjectFile(pos->second, orderedSymbol.objectFileName) ) {
-			//fprintf(stderr, "found %s in hash table\n", orderedSymbol.symbolName);
+			fprintf(stderr, "found %s in hash table\n", orderedSymbol.symbolName);
 			return pos->second;
 		}
 		if ( pos->second == NULL ) {

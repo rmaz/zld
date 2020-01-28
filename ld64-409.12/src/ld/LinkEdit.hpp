@@ -1278,7 +1278,7 @@ void ExportInfoAtom<A>::encode() const
 				entry.importName = atom->name();
 			}
 			entries.push_back(entry);
-			//fprintf(stderr, "re-export %s from lib %llu as %s\n", entry.importName, entry.other, entry.name);
+			fprintf(stderr, "re-export %s from lib %llu as %s\n", entry.importName, entry.other, entry.name);
 		}
 		else if ( atom->definition() == ld::Atom::definitionAbsolute ) {
 			entry.name = atom->name();
@@ -1494,9 +1494,9 @@ void SplitSegInfoV1Atom<A>::uleb128EncodeAddresses(const std::vector<uint64_t>& 
 	pint_t addr = this->_options.baseAddress();
 	for(typename std::vector<uint64_t>::const_iterator it = locations.begin(); it != locations.end(); ++it) {
 		pint_t nextAddr = *it;
-		//fprintf(stderr, "nextAddr=0x%0llX\n", (uint64_t)nextAddr);
+		fprintf(stderr, "nextAddr=0x%0llX\n", (uint64_t)nextAddr);
 		uint64_t delta = nextAddr - addr;
-		//fprintf(stderr, "delta=0x%0llX\n", delta);
+		fprintf(stderr, "delta=0x%0llX\n", delta);
 		if ( delta == 0 ) 
 			throw "double split seg info for same address";
 		// uleb128 encode
@@ -1528,7 +1528,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 	this->_encodedData.reserve(8192);
 	if ( _32bitPointerLocations.size() != 0 ) {
 		this->_encodedData.append_byte(1);
-		//fprintf(stderr, "type 1:\n");
+		fprintf(stderr, "type 1:\n");
 		std::sort(_32bitPointerLocations.begin(), _32bitPointerLocations.end());
 		this->uleb128EncodeAddresses(_32bitPointerLocations);
 		this->_encodedData.append_byte(0); // terminator
@@ -1536,7 +1536,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 	
 	if ( _64bitPointerLocations.size() != 0 ) {
 		this->_encodedData.append_byte(2);
-		//fprintf(stderr, "type 2:\n");
+		fprintf(stderr, "type 2:\n");
 		std::sort(_64bitPointerLocations.begin(), _64bitPointerLocations.end());
 		this->uleb128EncodeAddresses(_64bitPointerLocations);
 		this->_encodedData.append_byte(0); // terminator
@@ -1544,7 +1544,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 
 	if ( _adrpLocations.size() != 0 ) {
 		this->_encodedData.append_byte(3);
-		//fprintf(stderr, "type 3:\n");
+		fprintf(stderr, "type 3:\n");
 		std::sort(_adrpLocations.begin(), _adrpLocations.end());
 		this->uleb128EncodeAddresses(_adrpLocations);
 		this->_encodedData.append_byte(0); // terminator
@@ -1552,7 +1552,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 
 	if ( _thumbLo16Locations.size() != 0 ) {
 		this->_encodedData.append_byte(5);
-		//fprintf(stderr, "type 5:\n");
+		fprintf(stderr, "type 5:\n");
 		std::sort(_thumbLo16Locations.begin(), _thumbLo16Locations.end());
 		this->uleb128EncodeAddresses(_thumbLo16Locations);
 		this->_encodedData.append_byte(0); // terminator
@@ -1560,7 +1560,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 
 	if ( _armLo16Locations.size() != 0 ) {
 		this->_encodedData.append_byte(6);
-		//fprintf(stderr, "type 6:\n");
+		fprintf(stderr, "type 6:\n");
 		std::sort(_armLo16Locations.begin(), _armLo16Locations.end());
 		this->uleb128EncodeAddresses(_armLo16Locations);
 		this->_encodedData.append_byte(0); // terminator
@@ -1569,7 +1569,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 	for (uint32_t i=0; i < 16; ++i) {
 		if ( _thumbHi16Locations[i].size() != 0 ) {
 			this->_encodedData.append_byte(16+i);
-			//fprintf(stderr, "type 16+%d:\n", i);
+			fprintf(stderr, "type 16+%d:\n", i);
 			std::sort(_thumbHi16Locations[i].begin(), _thumbHi16Locations[i].end());
 			this->uleb128EncodeAddresses(_thumbHi16Locations[i]);
 			this->_encodedData.append_byte(0); // terminator
@@ -1579,7 +1579,7 @@ void SplitSegInfoV1Atom<A>::encode() const
 	for (uint32_t i=0; i < 16; ++i) {
 		if ( _armHi16Locations[i].size() != 0 ) {
 			this->_encodedData.append_byte(32+i);
-			//fprintf(stderr, "type 32+%d:\n", i);
+			fprintf(stderr, "type 32+%d:\n", i);
 			std::sort(_armHi16Locations[i].begin(), _armHi16Locations[i].end());
 			this->uleb128EncodeAddresses(_armHi16Locations[i]);
 			this->_encodedData.append_byte(0); // terminator
@@ -1639,10 +1639,10 @@ template <typename A>
 void SplitSegInfoV2Atom<A>::encode() const
 {
 	// sort into group by adjustment kind
-	//fprintf(stderr, "_splitSegV2Infos.size=%lu\n", this->_writer._splitSegV2Infos.size());
+	fprintf(stderr, "_splitSegV2Infos.size=%lu\n", this->_writer._splitSegV2Infos.size());
 	WholeMap whole;
 	for (const OutputFile::SplitSegInfoV2Entry&  entry : this->_writer._splitSegV2Infos) {
-		//fprintf(stderr, "from=%d, to=%d\n", entry.fixupSectionIndex, entry.targetSectionIndex);
+		fprintf(stderr, "from=%d, to=%d\n", entry.fixupSectionIndex, entry.targetSectionIndex);
 		SectionIndexes index = entry.fixupSectionIndex << 16 | entry.targetSectionIndex;
 		ToOffsetMap& toOffsets = whole[index];
 		FromOffsetMap& fromOffsets = toOffsets[entry.targetSectionOffset];
@@ -1664,7 +1664,7 @@ void SplitSegInfoV2Atom<A>::encode() const
 		this->_encodedData.append_uleb128(fromSectionIndex);
 		this->_encodedData.append_uleb128(toSectionIndex);
 		this->_encodedData.append_uleb128(toOffsets.size());
-		//fprintf(stderr, "from sect=%d, to sect=%d, count=%lu\n", fromSectionIndex, toSectionIndex, toOffsets.size());
+		fprintf(stderr, "from sect=%d, to sect=%d, count=%lu\n", fromSectionIndex, toSectionIndex, toOffsets.size());
 		uint64_t lastToOffset = 0;
 		for (auto& fromToOffsets : toOffsets) {
 			uint64_t toSectionOffset = fromToOffsets.first;
@@ -1794,7 +1794,7 @@ private:
 	};
 
 	void encodeEntry(uint32_t startImageOffset, int len, ld::Fixup::Kind kind) const {
-		//fprintf(stderr, "encodeEntry(start=0x%08X, len=0x%04X, kind=%04X\n", startImageOffset, len, kind);
+		fprintf(stderr, "encodeEntry(start=0x%08X, len=0x%04X, kind=%04X\n", startImageOffset, len, kind);
 		do {
 			macho_data_in_code_entry<P> entry;
 			entry.set_offset(startImageOffset);

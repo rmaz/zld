@@ -245,7 +245,7 @@ const char* DwarfInstructions<A,R>::parseCFIs(A& addressSpace, pint_t ehSectionS
 			pint_t offsetOfFunctionAddress = p-currentCFI;
 			pint_t pcStart = addressSpace.getEncodedP(p, nextCFI, cieInfo.pointerEncoding);
 			pint_t pcRange = addressSpace.getEncodedP(p, nextCFI, cieInfo.pointerEncoding & 0x0F);
-			//fprintf(stderr, "FDE with pcRange [0x%08llX, 0x%08llX)\n",(uint64_t)pcStart, (uint64_t)(pcStart+pcRange));
+			fprintf(stderr, "FDE with pcRange [0x%08llX, 0x%08llX)\n",(uint64_t)pcStart, (uint64_t)(pcStart+pcRange));
 			entry->u.fdeInfo.function.targetAddress = pcStart;
 			entry->u.fdeInfo.function.offsetInCFI = offsetOfFunctionAddress;
 			entry->u.fdeInfo.function.encodingOfTargetAddress = cieInfo.pointerEncoding;
@@ -279,7 +279,7 @@ const char* DwarfInstructions<A,R>::parseCFIs(A& addressSpace, pint_t ehSectionS
                 warn(ref, pcStart, "FDE found for zero size function");
                 break;
             }
-			//fprintf(stderr, "FDE for func at 0x%08X, alreadyHaveCU=%d\n", (uint32_t)entry->u.fdeInfo.function.targetAddress, alreadyHaveCU);
+			fprintf(stderr, "FDE for func at 0x%08X, alreadyHaveCU=%d\n", (uint32_t)entry->u.fdeInfo.function.targetAddress, alreadyHaveCU);
 			if ( alreadyHaveCU && !forceDwarfConversion ) {
 				if ( keepDwarfWhichHasCU )
 					++entry;
@@ -321,7 +321,7 @@ const char* DwarfInstructions<A,R>::parseCFIs(A& addressSpace, pint_t ehSectionS
 		p = nextCFI;
 	}
 	if ( entry != end ) {
-		//fprintf(stderr, "DwarfInstructions<A,R>::parseCFIs() infosCount was %d on input, now %ld\n", infosCount, entry - infos); 
+		fprintf(stderr, "DwarfInstructions<A,R>::parseCFIs() infosCount was %d on input, now %ld\n", infosCount, entry - infos); 
 		infosCount = (entry - infos);
 	}
 	
@@ -433,7 +433,7 @@ v128 DwarfInstructions<A,R>::getSavedVectorRegister(A& addressSpace, const R& re
 template <typename A, typename R>
 int DwarfInstructions<A,R>::stepWithDwarf(A& addressSpace, pint_t pc, pint_t fdeStart, R& registers)
 {
-	//fprintf(stderr, "stepWithDwarf(pc=0x%0llX, fdeStart=0x%0llX)\n", (uint64_t)pc, (uint64_t)fdeStart);
+	fprintf(stderr, "stepWithDwarf(pc=0x%0llX, fdeStart=0x%0llX)\n", (uint64_t)pc, (uint64_t)fdeStart);
 	typename CFI_Parser<A>::FDE_Info fdeInfo;
 	typename CFI_Parser<A>::CIE_Info cieInfo;
 	if ( CFI_Parser<A>::decodeFDE(addressSpace, fdeStart, &fdeInfo, &cieInfo) == NULL ) {

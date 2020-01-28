@@ -454,7 +454,7 @@ static uint64_t read_uleb128(const uint8_t*& p, const uint8_t* end)
 template <typename A>
 void Rebaser<A>::rebaseAt(int segIndex, uint64_t offset, uint8_t type)
 {
-	//fprintf(stderr, "rebaseAt(seg=%d, offset=0x%08llX, type=%d\n", segIndex, offset, type);
+	fprintf(stderr, "rebaseAt(seg=%d, offset=0x%08llX, type=%d\n", segIndex, offset, type);
 	static int lastSegIndex = -1;
 	static uint8_t* lastSegMappedStart = NULL;
 	if ( segIndex != lastSegIndex ) {
@@ -620,7 +620,7 @@ template <typename A>
 typename A::P::uint_t* Rebaser<A>::mappedAddressForVMAddress(uint32_t vmaddress)
 {
 	for(typename std::vector<vmmap>::iterator it = fVMMApping.begin(); it != fVMMApping.end(); ++it) {
-		//fprintf(stderr, "vmaddr=0x%08lX, vmsize=0x%08lX\n", it->vmaddr, it->vmsize);
+		fprintf(stderr, "vmaddr=0x%08lX, vmsize=0x%08lX\n", it->vmaddr, it->vmsize);
 		if ( (vmaddress >= it->vmaddr) && (vmaddress < (it->vmaddr+it->vmsize)) ) {
 			return (pint_t*)((vmaddress - it->vmaddr) + it->fileoff + (uint8_t*)fHeader);
 		}
@@ -717,7 +717,7 @@ void Rebaser<A>::setRelocBase()
 {
 	// reloc addresses are from the start of the mapped file (base address)
 	fOrignalVMRelocBaseAddress = this->getBaseAddress();
-	//fprintf(stderr, "fOrignalVMRelocBaseAddress=0x%08X\n", fOrignalVMRelocBaseAddress);
+	fprintf(stderr, "fOrignalVMRelocBaseAddress=0x%08X\n", fOrignalVMRelocBaseAddress);
 }
 
 template <>
@@ -857,7 +857,7 @@ static void setSizes(fileInfo& info, const LDOrderedSet<cpu_type_t>& onlyArchs)
 				ai.vmSize = rebaser->getVMSize();
 				ai.orgBase = rebaser->getBaseAddress();
 				ai.newBase = 0;
-				//fprintf(stderr, "base=0x%llX, size=0x%llX\n", ai.orgBase, ai.vmSize);
+				fprintf(stderr, "base=0x%llX, size=0x%llX\n", ai.orgBase, ai.vmSize);
 				info.archs.push_back(ai);
 			}
 		}

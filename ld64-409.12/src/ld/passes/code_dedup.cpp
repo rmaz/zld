@@ -158,7 +158,7 @@ struct atom_equal {
 
     static bool sameFixups(const ld::Atom* atom1, const ld::Atom* atom2, BackChain& backChain) {
         ++sFixupCompareCount;
-        //fprintf(stderr, "sameFixups(%s,%s)\n", atom1->name(), atom2->name());
+        fprintf(stderr, "sameFixups(%s,%s)\n", atom1->name(), atom2->name());
         Fixup::iterator	f1   = atom1->fixupsBegin();
         Fixup::iterator	end1 = atom1->fixupsEnd();
         Fixup::iterator	f2   = atom2->fixupsBegin();
@@ -233,7 +233,7 @@ struct atom_equal {
         if ( memcmp(atom1->rawContentPointer(), atom2->rawContentPointer(), atom1->size()) != 0 )
             return false;
         bool result = sameFixups(atom1, atom2, backChain);
-        //fprintf(stderr, "sameFixups(%s,%s) = %d\n", atom1->name(), atom2->name(), result);
+        fprintf(stderr, "sameFixups(%s,%s) = %d\n", atom1->name(), atom2->name(), result);
         return result;
     }
 
@@ -386,7 +386,7 @@ void doPass(const Options& opts, ld::Internal& state)
             fprintf(stderr, "  %p (size=%llu) %s\n", atom, atom->size(), atom->name());
     }
 
-   //fprintf(stderr, "hash-count=%lu, fixup-compares=%lu, atom-count=%u\n", sHashCount, sFixupCompareCount, atomsBeingComparedCount);
+   fprintf(stderr, "hash-count=%lu, fixup-compares=%lu, atom-count=%u\n", sHashCount, sFixupCompareCount, atomsBeingComparedCount);
 }
 
 

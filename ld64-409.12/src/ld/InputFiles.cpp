@@ -523,7 +523,7 @@ void InputFiles::logTraceInfo(const char* format, ...) const
 
 ld::dylib::File* InputFiles::findDylib(const char* installPath, const ld::dylib::File* fromDylib, bool speculative)
 {
-	//fprintf(stderr, "findDylib(%s, %s)\n", installPath, fromPath);
+	fprintf(stderr, "findDylib(%s)\n", installPath);//, %s)\n", installPath, fromPath);
 	InstallNameToDylib::iterator pos = _installPathToDylibs.find(installPath);
 	if ( pos != _installPathToDylibs.end() ) {
 		return pos->second;
@@ -1334,7 +1334,7 @@ bool InputFiles::searchLibraries(const char* name, bool searchDylibs, bool searc
         if (lib.isDylib()) {
             if (searchDylibs) {
                 ld::dylib::File *dylibFile = lib.dylib();
-                //fprintf(stderr, "searchLibraries(%s), looking in linked %s\n", name, dylibFile->path() );
+                fprintf(stderr, "searchLibraries(%s), looking in linked %s\n", name, dylibFile->path() );
                 if ( dylibFile->justInTimeforEachAtom(name, handler) ) {
                     // we found a definition in this dylib
                     // done, unless it is a weak definition in which case we keep searching
@@ -1385,7 +1385,7 @@ bool InputFiles::searchLibraries(const char* name, bool searchDylibs, bool searc
 				searchThisDylib = ! dylibFile->explicitlyLinked();
 			}
 			if ( searchThisDylib ) {
-				//fprintf(stderr, "searchLibraries(%s), looking in implicitly linked %s\n", name, dylibFile->path() );
+				fprintf(stderr, "searchLibraries(%s), looking in implicitly linked %s\n", name, dylibFile->path() );
 				if ( dylibFile->justInTimeforEachAtom(name, handler) ) {
 					// we found a definition in this dylib
 					// done, unless it is a weak definition in which case we keep searching
@@ -1490,7 +1490,7 @@ void InputFiles::dylibs(ld::Internal& state)
 		state.dylibs.insert(state.dylibs.end(), implicitDylibs.begin(), implicitDylibs.end());
 	}
 
-	//fprintf(stderr, "all dylibs:\n");
+	fprintf(stderr, "all dylibs:\n");
 	//for(std::vector<ld::dylib::File*>::iterator it=state.dylibs.begin(); it != state.dylibs.end(); ++it) {
 	//	const ld::dylib::File* dylib = *it;
 	//	fprintf(stderr, "    %p impl=%d %s\n", dylib, dylib->implicitlyLinked(), dylib->path());

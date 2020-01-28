@@ -1084,7 +1084,7 @@ void MachOChecker<A>::checkSymbolTable()
 			const char* symName = &fStrings[p->n_strx()];
 			if ( symName > fStringsEnd )
 				throw "string index out of range";
-			//fprintf(stderr, "sym[%d] = %s\n", i, symName);
+			fprintf(stderr, "sym[%d] = %s\n", i, symName);
 			if ( externalNames.find(symName) != externalNames.end() )
 				throwf("duplicate external symbol: %s", symName);
 			if ( (p->n_type() & N_EXT) == 0 )

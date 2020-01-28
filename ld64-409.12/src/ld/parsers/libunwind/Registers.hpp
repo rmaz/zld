@@ -681,7 +681,7 @@ inline uint32_t Registers_ppc::getRegister(int regNum) const
 
 inline void Registers_ppc::setRegister(int regNum, uint32_t value)
 {
-	//fprintf(stderr, "Registers_ppc::setRegister(%d, 0x%08X)\n", regNum, value);	
+	fprintf(stderr, "Registers_ppc::setRegister(%d, 0x%08X)\n", regNum, value);	
 	switch ( regNum ) {
 		case UNW_REG_IP:
 			fRegisters.__srr0 = value;
@@ -860,7 +860,7 @@ inline double Registers_ppc::getFloatRegister(int regNum) const
 
 inline void Registers_ppc::setFloatRegister(int regNum, double value)
 {
-	//fprintf(stderr, "Registers_ppc::setFloatRegister(%d, %g))\n", regNum, value);
+	fprintf(stderr, "Registers_ppc::setFloatRegister(%d, %g))\n", regNum, value);
 	assert(validFloatRegister(regNum));
 	fFloatRegisters.__fpregs[regNum-UNW_PPC_F0] = value;
 }
@@ -879,17 +879,17 @@ v128 Registers_ppc::getVectorRegister(int regNum) const
 {
 	assert(validVectorRegister(regNum));
 	v128 result = fVectorRegisters[regNum-UNW_PPC_V0];
-	//fprintf(stderr, "Registers_ppc::getVectorRegister(this=%p, %d) => <0x%08X, 0x%08X, 0x%08X, 0x%08X> \n", 
-	//		this, regNum, result.vec[0], result.vec[1], result.vec[2], result.vec[3]);
+	fprintf(stderr, "Registers_ppc::getVectorRegister(this=%p, %d) => <0x%08X, 0x%08X, 0x%08X, 0x%08X> \n", 
+	this, regNum, result.vec[0], result.vec[1], result.vec[2], result.vec[3]);
 	return result;
 }
 
 void Registers_ppc::setVectorRegister(int regNum, v128 value) 
 {
 	assert(validVectorRegister(regNum));
-	//fprintf(stderr, "Registers_ppc::setVectorRegister(this=%p, %d) <0x%08X, 0x%08X, 0x%08X, 0x%08X> => <0x%08X, 0x%08X, 0x%08X, 0x%08X> \n", 
-	//		this, regNum, fVectorRegisters[regNum-UNW_PPC_V0].vec[0], fVectorRegisters[regNum-UNW_PPC_V0].vec[1], fVectorRegisters[regNum-UNW_PPC_V0].vec[2], 
-	//			fVectorRegisters[regNum-UNW_PPC_V0].vec[3], value.vec[0], value.vec[1], value.vec[2], value.vec[3]);
+	fprintf(stderr, "Registers_ppc::setVectorRegister(this=%p, %d) <0x%08X, 0x%08X, 0x%08X, 0x%08X> => <0x%08X, 0x%08X, 0x%08X, 0x%08X> \n", 
+	this, regNum, fVectorRegisters[regNum-UNW_PPC_V0].vec[0], fVectorRegisters[regNum-UNW_PPC_V0].vec[1], fVectorRegisters[regNum-UNW_PPC_V0].vec[2], 
+	fVectorRegisters[regNum-UNW_PPC_V0].vec[3], value.vec[0], value.vec[1], value.vec[2], value.vec[3]);
 	fVectorRegisters[regNum-UNW_PPC_V0] = value;
 }
 

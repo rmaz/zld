@@ -252,11 +252,11 @@ void doPass(const Options& opts, ld::Internal& internal)
 		}
 		int typeCount = types.size();
 		const char* typeNames[typeCount];
-		//fprintf(stderr, "types for %s:\n", providerName);
+		fprintf(stderr, "types for %s:\n", providerName);
 		uint32_t index = 0;
 		for(CStringSet::iterator it = types.begin(); it != types.end(); ++it) {
 			typeNames[index] = *it;
-			//fprintf(stderr, "\t%s\n", *it);
+			fprintf(stderr, "\t%s\n", *it);
 			++index;
 		}
 		
@@ -308,7 +308,7 @@ void doPass(const Options& opts, ld::Internal& internal)
 			f->reserveFixups(3*probeCount);
 			for (uint32_t i=0; i < probeCount; ++i) {
 				uint64_t offset = offsetsInDOF[i];
-				//fprintf(stderr, "%s offset[%d]=0x%08llX\n", providerName, i, offset);
+				fprintf(stderr, "%s offset[%d]=0x%08llX\n", providerName, i, offset);
 				if ( offset > dofSectionSize )
 					throwf("offsetsInDOF[%d]=%0llX > dofSectionSize=%0lX\n", i, offset, dofSectionSize);
 				f->addSectionFixup(ld::Fixup(offset, ld::Fixup::k1of4, ld::Fixup::kindSetTargetAddress, probes[i].atom));

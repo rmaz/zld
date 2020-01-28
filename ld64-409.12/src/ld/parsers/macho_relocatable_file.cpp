@@ -1846,10 +1846,10 @@ ld::relocatable::File* Parser<A>::parse(const ParserOptions& opts)
 		for(uint32_t i=0; i < countOfCFIs; ++i) {
 			if ( cfiArray[i].isCIE )
 				continue;
-			//fprintf(stderr, "cfiArray[i].func = 0x%08llX, cfiArray[i].lsda = 0x%08llX, encoding=0x%08X\n",
-			//			(uint64_t)cfiArray[i].u.fdeInfo.function.targetAddress,
-			//			(uint64_t)cfiArray[i].u.fdeInfo.lsda.targetAddress,
-			//			cfiArray[i].u.fdeInfo.compactUnwindInfo);
+			fprintf(stderr, "cfiArray[i].func = 0x%08llX, cfiArray[i].lsda = 0x%08llX, encoding=0x%08X\n",
+			(uint64_t)cfiArray[i].u.fdeInfo.function.targetAddress,
+			(uint64_t)cfiArray[i].u.fdeInfo.lsda.targetAddress,
+			cfiArray[i].u.fdeInfo.compactUnwindInfo);
 			if ( cfiArray[i].u.fdeInfo.function.targetAddress != CFI_INVALID_ADDRESS )
 				++cfiStartsCount;
 			if ( cfiArray[i].u.fdeInfo.lsda.targetAddress != CFI_INVALID_ADDRESS )
@@ -1913,7 +1913,7 @@ ld::relocatable::File* Parser<A>::parse(const ParserOptions& opts)
 		//fprintf(stderr, "computed count=%u for section %s size=%llu\n", count, sect->sectname(), (sect != NULL) ? sect->size() : 0);
 		computedAtomCount += count;
 	}
-	//fprintf(stderr, "allocating %d atoms * sizeof(Atom<A>)=%ld, sizeof(ld::Atom)=%ld\n", computedAtomCount, sizeof(Atom<A>), sizeof(ld::Atom));
+	fprintf(stderr, "allocating %d atoms * sizeof(Atom<A>)=%ld, sizeof(ld::Atom)=%ld\n", computedAtomCount, sizeof(Atom<A>), sizeof(ld::Atom));
 	_file->_atomsArray = new uint8_t[computedAtomCount*sizeof(Atom<A>)];
 	_file->_atomsArrayCount = 0;
 	
@@ -1924,7 +1924,7 @@ ld::relocatable::File* Parser<A>::parse(const ParserOptions& opts)
 		uint8_t* atoms = _file->_atomsArray + _file->_atomsArrayCount*sizeof(Atom<A>);
 		breakIterator2.beginSection();
 		uint32_t count = sections[i]->appendAtoms(*this, atoms, breakIterator2, cfis);
-		//fprintf(stderr, "append count=%u for section %s/%s\n", count, sections[i]->machoSection()->segname(), sections[i]->machoSection()->sectname());
+		fprintf(stderr, "append count=%u for section %s/%s\n", count, sections[i]->machoSection()->segname(), sections[i]->machoSection()->sectname());
 		_file->_atomsArrayCount += count;
 	}
 	assert( _file->_atomsArrayCount == computedAtomCount && "more atoms allocated than expected");
@@ -1970,7 +1970,7 @@ ld::relocatable::File* Parser<A>::parse(const ParserOptions& opts)
 			_file->_unwindInfos.push_back(info);
 			Atom<A>* func = findAtomByAddress(cfiArray[i].u.fdeInfo.function.targetAddress);
 			func->setUnwindInfoRange(_file->_unwindInfos.size()-1, 1);
-			//fprintf(stderr, "cu from dwarf =0x%08X, atom=%s\n", info.unwindInfo, func->name());
+			fprintf(stderr, "cu from dwarf =0x%08X, atom=%s\n", info.unwindInfo, func->name());
 		}
 	}
 	// apply compact infos in __LD,__compact_unwind section to each function
@@ -1986,7 +1986,7 @@ ld::relocatable::File* Parser<A>::parse(const ParserOptions& opts)
 		_file->_unwindInfos.push_back(ui);
 		// don't override with converted cu with "use dwarf" cu, if forcing dwarf conversion
 		if ( !_forceDwarfConversion || !CUSection<A>::encodingMeansUseDwarf(info->compactUnwindInfo) ) {
-			//fprintf(stderr, "cu=0x%08X, atom=%s\n", ui.unwindInfo, info->function->name());
+			fprintf(stderr, "cu=0x%08X, atom=%s\n", ui.unwindInfo, info->function->name());
 			// if previous is for same function, extend range
 			if ( info->function == lastFunc ) {
 				if ( lastEnd != ui.startOffset ) {
@@ -2510,7 +2510,7 @@ void Parser<A>::makeSortedSymbolsArray(uint32_t array[], const uint32_t sectionA
 	_overlappingSymbols = false;
 	for (unsigned int i=1; i < _symbolsInSections; ++i) {
 		if ( symbolFromIndex(array[i-1]).n_value() == symbolFromIndex(array[i]).n_value() ) {
-			//fprintf(stderr, "overlapping symbols at 0x%08llX\n", symbolFromIndex(array[i-1]).n_value());
+			fprintf(stderr, "overlapping symbols at 0x%08llX\n", symbolFromIndex(array[i-1]).n_value());
 			_overlappingSymbols = true;
 			break;
 		}
@@ -3744,9 +3744,9 @@ void Parser<A>::parseDebugInfo()
 				LDOrderedMap<uint32_t,const char*>	dwarfIndexToFile;
 				if ( lines != NULL ) {
 					while ( line_next(lines, &result, line_stop_pc) ) {
-						//fprintf(stderr, "curAtom=%p, result.pc=0x%llX, result.line=%llu, result.end_of_sequence=%d,"
-						//				  " curAtomAddress=0x%X, curAtomSize=0x%X\n",
-						//		curAtom, result.pc, result.line, result.end_of_sequence, curAtomAddress, curAtomSize);
+						fprintf(stderr, "curAtom=%p, result.pc=0x%llX, result.line=%llu, result.end_of_sequence=%d,"
+						" curAtomAddress=0x%X, curAtomSize=0x%X\n",
+						curAtom, result.pc, result.line, result.end_of_sequence, curAtomAddress, curAtomSize);
 						// work around weird debug line table compiler generates if no functions in __text section
 						if ( (curAtom == NULL) && (result.pc == 0) && result.end_of_sequence && (result.file == 1))
 							continue;
@@ -3817,8 +3817,8 @@ void Parser<A>::parseDebugInfo()
 							entry.info.atomOffset = curAtomOffset;
 							entry.info.fileName = filename;
 							entry.info.lineNumber = result.line;
-							//fprintf(stderr, "addr=0x%08llX, line=%lld, file=%s, atom=%s, atom.size=0x%X, end=%d\n", 
-							//		result.pc, result.line, filename, curAtom->name(), curAtomSize, result.end_of_sequence);
+							fprintf(stderr, "addr=0x%08llX, line=%lld, file=%s, atom=%s, atom.size=0x%X, end=%d\n", 
+							result.pc, result.line, filename, curAtom->name(), curAtomSize, result.end_of_sequence);
 							entries.push_back(entry);
 							curAtom->incrementLineInfoCount();
 						}
@@ -5409,7 +5409,7 @@ uint32_t SymboledSection<A>::computeAtomCount(class Parser<A>& parser,
 	while ( it.next(parser, *this, sectNum, startAddr, endAddr, &addr, &size, &sym) ) {
 		++count;
 	}
-	//fprintf(stderr, "computeAtomCount(%s,%s) => %d\n", this->segmentName(), this->sectionName(), count);
+	fprintf(stderr, "computeAtomCount(%s,%s) => %d\n", this->segmentName(), this->sectionName(), count);
 	return count;
 }
 
@@ -5420,7 +5420,7 @@ uint32_t SymboledSection<A>::appendAtoms(class Parser<A>& parser, uint8_t* p,
 {
 	this->_beginAtoms = (Atom<A>*)p;
 
-	//fprintf(stderr, "SymboledSection::appendAtoms() in section %s\n", this->_machOSection->sectname());
+	fprintf(stderr, "SymboledSection::appendAtoms() in section %s\n", this->_machOSection->sectname());
 	const pint_t startAddr = this->_machOSection->addr();
 	const pint_t endAddr = startAddr + this->_machOSection->size();
 	const uint32_t sectNum = this->sectionNum(parser);
@@ -5520,7 +5520,7 @@ uint32_t ImplicitSizeSection<A>::appendAtoms(class Parser<A>& parser, uint8_t* p
 	const pint_t startAddr = sect->addr();
 	const pint_t endAddr = startAddr + sect->size();
 	const uint32_t sectNum = this->sectionNum(parser);
-	//fprintf(stderr, "ImplicitSizeSection::appendAtoms() in section %s\n", sect->sectname());
+	fprintf(stderr, "ImplicitSizeSection::appendAtoms() in section %s\n", sect->sectname());
 	uint32_t count = 0;
 	pint_t	foundAddr;
 	pint_t	size;
@@ -5539,7 +5539,7 @@ uint32_t ImplicitSizeSection<A>::appendAtoms(class Parser<A>& parser, uint8_t* p
 					skip = true;
 				}
 				else {
-					//fprintf(stderr, "  0x%08llX make annon, size=%lld\n", (uint64_t)foundAddr, (uint64_t)size);
+					fprintf(stderr, "  0x%08llX make annon, size=%lld\n", (uint64_t)foundAddr, (uint64_t)size);
 					new (allocatedSpace) Atom<A>(*this, this->unlabeledAtomName(parser, foundAddr), foundAddr, 
 											this->elementSizeAtAddress(foundAddr), this->definition(), 
 											this->combine(parser, foundAddr), this->scopeAtAddress(parser, foundAddr), 
@@ -5549,7 +5549,7 @@ uint32_t ImplicitSizeSection<A>::appendAtoms(class Parser<A>& parser, uint8_t* p
 			}
 			else {
 				// make named atom for label
-				//fprintf(stderr, "  0x%08llX make labeled: %s\n", (uint64_t)foundAddr, parser.nameFromSymbol(*foundLabel));
+				fprintf(stderr, "  0x%08llX make labeled: %s\n", (uint64_t)foundAddr, parser.nameFromSymbol(*foundLabel));
 				new (allocatedSpace) Atom<A>(*this, parser, *foundLabel, labeledAtomSize);
 			}
 			if ( !skip ) {
@@ -5563,7 +5563,7 @@ uint32_t ImplicitSizeSection<A>::appendAtoms(class Parser<A>& parser, uint8_t* p
 		for (pint_t addr = foundAddr; addr < (foundAddr+size); addr += elementSizeAtAddress(addr) ) {
 			// make anon atoms for area before label
 			if ( this->useElementAt(parser, it, addr) ) {
-				//fprintf(stderr, "  0x%08llX make annon, size=%lld\n", (uint64_t)addr, (uint64_t)elementSizeAtAddress(addr));
+				fprintf(stderr, "  0x%08llX make annon, size=%lld\n", (uint64_t)addr, (uint64_t)elementSizeAtAddress(addr));
 				allocatedSpace = (Atom<A>*)p;
 				new (allocatedSpace) Atom<A>(*this, this->unlabeledAtomName(parser, addr), addr, this->elementSizeAtAddress(addr), 
 											this->definition(), this->combine(parser, addr), this->scopeAtAddress(parser, addr), 
@@ -7975,11 +7975,11 @@ void Section<A>::makeFixups(class Parser<A>& parser, const struct Parser<A>::CFI
 			}
 			if ( (startAddr <= addrs[0]) && (addrs[0] < endAddr) ) {
 				this->addLOH(parser, kind, count, addrs);
-				//fprintf(stderr, "kind=%d", kind);
+				fprintf(stderr, "kind=%d", kind);
 				//for (int32_t i=0; i < count; ++i) {
 				//	fprintf(stderr, ", addr=0x%08llX", addrs[i]);
 				//}
-				//fprintf(stderr, "\n");
+				fprintf(stderr, "\n");
 			}
 		}
 	}

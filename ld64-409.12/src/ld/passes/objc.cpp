@@ -602,7 +602,7 @@ const ld::Atom* Class<A>::setClassProtocolList(ld::Internal& state, const ld::At
 {
 	// meta class also points to same protocol list as class
 	const ld::Atom* metaClassAtom = getMetaClass(state, classAtom);
-	//fprintf(stderr, "setClassProtocolList(), classAtom=%p %s, metaClass=%p %s\n", classAtom, classAtom->name(), metaClassAtom, metaClassAtom->name());
+	fprintf(stderr, "setClassProtocolList(), classAtom=%p %s, metaClass=%p %s\n", classAtom, classAtom->name(), metaClassAtom, metaClassAtom->name());
 	return setInstanceProtocolList(state, metaClassAtom, protocolListAtom, deadAtoms);
 }
 
@@ -864,7 +864,7 @@ void OptimizeCategories<A>::doit(const Options& opts, ld::Internal& state)
 				const ld::Atom* categoryListElementAtom = *ait;
 				for (unsigned int offset=0; offset < categoryListElementAtom->size(); offset += sizeof(pint_t)) {
 					const ld::Atom* categoryAtom = ObjCData<A>::getPointerInContent(state, categoryListElementAtom, offset);
-					//fprintf(stderr, "offset=%d, cat=%p %s\n", offset, categoryAtom, categoryAtom->name());
+					fprintf(stderr, "offset=%d, cat=%p %s\n", offset, categoryAtom, categoryAtom->name());
 					assert(categoryAtom != NULL);
 					nlcatListAtoms.insert(categoryAtom);
 				}
@@ -1064,7 +1064,7 @@ MethodListAtom<A>::MethodListAtom(ld::Internal& state, const ld::Atom* baseMetho
 	//	fprintf(stderr, "total merged method count=%u for baseMethodList=%s\n", _methodCount, baseMethodList->name());
 	//else
 	//	fprintf(stderr, "total merged method count=%u\n", _methodCount);
-	//fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
+	fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
 	
 	// copy fixups and adjust offsets (in reverse order to simulator objc runtime)
 	_fixups.reserve(fixupCount);
@@ -1141,8 +1141,8 @@ ProtocolListAtom<A>::ProtocolListAtom(ld::Internal& state, const ld::Atom* baseP
 				_file = categoryProtocolListAtom->file();
 		}
 	}
-	//fprintf(stderr, "total merged protocol count=%u\n", _protocolCount);
-	//fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
+	fprintf(stderr, "total merged protocol count=%u\n", _protocolCount);
+	fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
 	
 	// copy fixups and adjust offsets 
 	_fixups.reserve(fixupCount);
@@ -1198,8 +1198,8 @@ PropertyListAtom<A>::PropertyListAtom(ld::Internal& state, const ld::Atom* baseP
 				_file = categoryPropertyListAtom->file();
 		}
 	}
-	//fprintf(stderr, "total merged property count=%u\n", _propertyCount);
-	//fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
+	fprintf(stderr, "total merged property count=%u\n", _propertyCount);
+	fprintf(stderr, "total merged fixup count=%u\n", fixupCount);
 	
 	// copy fixups and adjust offsets 
 	_fixups.reserve(fixupCount);
@@ -1211,7 +1211,7 @@ PropertyListAtom<A>::PropertyListAtom(ld::Internal& state, const ld::Atom* baseP
 				ld::Fixup fixup = *fit;
 				fixup.offsetInAtom += slide;
 				_fixups.push_back(fixup);
-				//fprintf(stderr, "offset=0x%08X, binding=%d\n", fixup.offsetInAtom, fixup.binding);
+				fprintf(stderr, "offset=0x%08X, binding=%d\n", fixup.offsetInAtom, fixup.binding);
 				//if ( fixup.binding == ld::Fixup::bindingDirectlyBound )
 				//	fprintf(stderr, "offset=0x%08X, name=%s\n", fixup.offsetInAtom, fixup.u.target->name());
 				//else if ( fixup.binding == ld::Fixup::bindingsIndirectlyBound )

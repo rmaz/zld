@@ -178,7 +178,7 @@ bool OutputFile::findSegment(ld::Internal& state, uint64_t addr, uint64_t* start
 		ld::Internal::FinalSection* sect = *it;
 		if ( (segFirstSection == NULL ) || strcmp(segFirstSection->segmentName(), sect->segmentName()) != 0 ) {
 			if ( segFirstSection != NULL ) {
-				//fprintf(stderr, "findSegment(0x%llX) seg changed to %s\n", addr, sect->segmentName());
+				fprintf(stderr, "findSegment(0x%llX) seg changed to %s\n", addr, sect->segmentName());
 				if ( (addr >= segFirstSection->address) && (addr < lastSection->address+lastSection->size) ) {
 					*start = segFirstSection->address;
 					*end = lastSection->address+lastSection->size;
@@ -309,7 +309,7 @@ void OutputFile::updateLINKEDITAddresses(ld::Internal& state)
 		uint64_t offset = 0;
 		for (std::vector<const ld::Atom*>::iterator ait = sect->atoms.begin(); ait != sect->atoms.end(); ++ait) {
 			const ld::Atom* atom = *ait;
-			//fprintf(stderr, "setting linkedit atom offset for %s\n", atom->name());
+			fprintf(stderr, "setting linkedit atom offset for %s\n", atom->name());
 			if ( atom->alignment().powerOf2 > maxAlignment )
 				maxAlignment = atom->alignment().powerOf2;
 			// calculate section offset for this atom
@@ -1336,7 +1336,7 @@ static bool isPageOffsetKind(const ld::Fixup* fixup, bool mustBeGOT=false)
 
 void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::Atom* atom, uint8_t* buffer)
 {
-	//fprintf(stderr, "applyFixUps() on %s\n", atom->name());
+	fprintf(stderr, "applyFixUps() on %s\n", atom->name());
 	int64_t accumulator = 0;
 	const ld::Atom* toTarget = NULL;	
 	const ld::Atom* fromTarget;
@@ -2173,7 +2173,7 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 						if ( pos != usedByHints.end() ) {
 							assert(pos->second == NULL && "two fixups in same hint location");
 							pos->second = fit;
-							//fprintf(stderr, "setting %s usedByHints[0x%04X], kind = %d\n",  atom->name(), fit->offsetInAtom, fit->kind);
+							fprintf(stderr, "setting %s usedByHints[0x%04X], kind = %d\n",  atom->name(), fit->offsetInAtom, fit->kind);
 						}
 					}
 			}
@@ -2348,7 +2348,7 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 						LOH_ASSERT(ldrInfoB.size == 8);
 						LOH_ASSERT(!ldrInfoB.isFloat);
 						LOH_ASSERT(ldrInfoC.baseReg == ldrInfoB.reg);
-						//fprintf(stderr, "infoA.target=%p, %s, infoA.targetAddress=0x%08llX\n", infoA.target, infoA.target->name(), infoA.targetAddress);
+						fprintf(stderr, "infoA.target=%p, %s, infoA.targetAddress=0x%08llX\n", infoA.target, infoA.target->name(), infoA.targetAddress);
 						targetFourByteAligned = ( ((infoA.targetAddress + ldrInfoC.offset) & 0x3) == 0 );
 						if ( usableSegment && targetFourByteAligned && withinOneMeg(infoB.instructionAddress, infoA.targetAddress + ldrInfoC.offset) ) {
 							// can do T5 transform
@@ -2677,7 +2677,7 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 		if ( takesNoDiskSpace(sect) )
 			continue;
 		const bool sectionUsesNops = (sect->type() == ld::Section::typeCode);
-		//fprintf(stderr, "file offset=0x%08llX, section %s\n", sect->fileOffset, sect->sectionName());
+		fprintf(stderr, "file offset=0x%08llX, section %s\n", sect->fileOffset, sect->sectionName());
 		std::vector<const ld::Atom*>& atoms = sect->atoms;
 		bool lastAtomWasThumb = false;
 		for (std::vector<const ld::Atom*>::iterator ait = atoms.begin(); ait != atoms.end(); ++ait) {
@@ -2708,9 +2708,9 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 	}
 	
 	if ( _options.verboseOptimizationHints() ) {
-		//fprintf(stderr, "ADRP optimized away:   %d\n", sAdrpNA);
-		//fprintf(stderr, "ADRPs changed to NOPs: %d\n", sAdrpNoped);
-		//fprintf(stderr, "ADRPs unchanged:       %d\n", sAdrpNotNoped);
+		fprintf(stderr, "ADRP optimized away:   %d\n", sAdrpNA);
+		fprintf(stderr, "ADRPs changed to NOPs: %d\n", sAdrpNoped);
+		fprintf(stderr, "ADRPs unchanged:       %d\n", sAdrpNotNoped);
 	}
 
 	if ( _options.makeThreadedStartsSection() ) {
@@ -3143,7 +3143,7 @@ void OutputFile::writeOutputFile(ld::Internal& state)
 		}
 	}
 	
-	//fprintf(stderr, "outputIsMappableFile=%d, outputIsRegularFile=%d, path=%s\n", outputIsMappableFile, outputIsRegularFile, _options.outputFilePath());
+	fprintf(stderr, "outputIsMappableFile=%d, outputIsRegularFile=%d, path=%s\n", outputIsMappableFile, outputIsRegularFile, _options.outputFilePath());
 	
 	int fd;
 	// Construct a temporary path of the form {outputFilePath}.ld_XXXXXX
@@ -3994,7 +3994,7 @@ void OutputFile::buildDylibOrdinalMapping(ld::Internal& state)
 		}
 	}
 	_noReExportedDylibs = !hasReExports;
-	//fprintf(stderr, "dylibs:\n");
+	fprintf(stderr, "dylibs:\n");
 	//for (LDOrderedMap<const ld::dylib::File*, int>::const_iterator it = _dylibToOrdinal.begin(); it != _dylibToOrdinal.end(); ++it) {
 	//	fprintf(stderr, " %p ord=%u, install_name=%s\n",it->first, it->second, it->first->installPath());
 	//}
@@ -4520,7 +4520,7 @@ void OutputFile::addDyldInfo(ld::Internal& state,  ld::Internal::FinalSection* s
 			if ( fit->firstInCluster() ) {
 				if ( fit->kind == ld::Fixup::kindNoneFollowOn ) {
 					if ( fit->binding == ld::Fixup::bindingDirectlyBound ) {
-						//fprintf(stderr, "switching import of %s to import of %s\n", target->name(),  fit->u.target->name());
+						fprintf(stderr, "switching import of %s to import of %s\n", target->name(),  fit->u.target->name());
 						target = fit->u.target;
 					}
 				}
@@ -5791,7 +5791,7 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 		const ld::Atom* atom = *it;
 		const ld::File* atomFile = atom->file();
 		const ld::relocatable::File* atomObjFile = dynamic_cast<const ld::relocatable::File*>(atomFile);
-		//fprintf(stderr, "debug note for %s\n", atom->name());
+		fprintf(stderr, "debug note for %s\n", atom->name());
 		const char* newPath = atom->translationUnitSource();
 		if ( newPath != NULL ) {
 			const char* newDirPath;

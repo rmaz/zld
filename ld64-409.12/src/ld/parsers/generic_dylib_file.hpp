@@ -476,7 +476,7 @@ bool File<A>::allSymbolsAreWeakImported() const
 {
 	bool foundNonWeakImport = false;
 	bool foundWeakImport = false;
-	//fprintf(stderr, "%s:\n", this->path());
+	fprintf(stderr, "%s:\n", this->path());
 	for (const auto &it : _atoms) {
 		auto* atom = it.second.atom;
 		if ( atom != nullptr ) {
