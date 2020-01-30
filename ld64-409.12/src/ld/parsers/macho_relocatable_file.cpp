@@ -4251,11 +4251,12 @@ bool File<A>::forEachAtom(ld::File::AtomHandler& handler) const
 {
 	handler.doFile(*this);
 	uint8_t* p = _atomsArray;
-	FastFileMap fileMap;
-	LDMap<const char*, int32_t, CPointerHash, CPointerEquals> innerMap;
-	fileMap.fileMap = &innerMap;
+	//FastFileMap fileMap;
+	//fileMap.lock = lock; //pthread_rwlock_init(<#pthread_rwlock_t * _Nonnull#>, <#const pthread_rwlockattr_t * _Nullable#>)
+	//LDMap<const char*, int32_t, CPointerHash, CPointerEquals> innerMap;
+	//fileMap.fileMap = &innerMap;
 	for(int i=_atomsArrayCount; i > 0; --i) {
-		handler.doAtom(*((Atom<A>*)p), &fileMap);
+		handler.doAtom(*((Atom<A>*)p));
 		p += sizeof(Atom<A>);
 	}
 	p = _aliasAtomsArray;

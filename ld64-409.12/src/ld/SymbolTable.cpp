@@ -60,7 +60,7 @@ static ld::IndirectBindingTable*	_s_indirectBindingTable = NULL;
 
 
 SymbolTable::SymbolTable(const Options& opts, std::vector<const ld::Atom*>& ibt) 
-	: _options(opts), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false)
+	: _options(opts), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false), _byNameTable(5000)
 {  
 	_s_indirectBindingTable = this;
 }
@@ -636,7 +636,7 @@ SymbolTable::IndirectBindingSlot SymbolTable::findSlotForName(const char* name, 
 	} else {
 		nfoundz++;
 	}*/
-	if (foundzMap.contains(name)) {
+	/*if (foundzMap.contains(name)) {
     	foundzMap[name]++;
 	} else {
 		foundzMap[name] = 1;
@@ -646,20 +646,38 @@ SymbolTable::IndirectBindingSlot SymbolTable::findSlotForName(const char* name, 
     	if (filePos != seenPerFile->fileMap->end()) {
     		return filePos->second;
     	}
+	}*/
+	if (seenPerFile) {
+    	pthread_rwlock_rdlock(seenPerFile->lock);
 	}
 	NameToSlot::iterator pos = _byNameTable.find(name);
+	size_t size = _byNameTable.size();
+	if (seenPerFile) {
+    	pthread_rwlock_unlock(seenPerFile->lock);
+	}
 	if ( pos != _byNameTable.end() )  {
 		IndirectBindingSlot slot = pos->second;
-		if (seenPerFile) {
-    		(*(seenPerFile->fileMap))[name] = slot;
-		}
 		return slot;
+	}
+	if (seenPerFile) {
+    	pthread_rwlock_wrlock(seenPerFile->lock);
+		if (size != _byNameTable.size()) {
+			auto newFind = _byNameTable.find(name);
+			if (newFind != _byNameTable.end()) {
+            	pthread_rwlock_unlock(seenPerFile->lock);
+				return newFind->second;
+			}
+		}
 	}
 	// create new slot for this name
 	SymbolTable::IndirectBindingSlot slot = _indirectBindingTable.size();
 	_indirectBindingTable.push_back(NULL);
-	_byNameTable[name] = slot;
+	_byNameTable.numSubMaps();
+	_byNameTable.insert(name, slot);// [name] = slot;
 	_byNameReverseTable[slot] = name;
+	if (seenPerFile) {
+    	pthread_rwlock_unlock(seenPerFile->lock);
+	}
 	//nfoundz++;
 	return slot;
 }

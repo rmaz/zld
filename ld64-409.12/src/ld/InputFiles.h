@@ -42,6 +42,7 @@
 #include <mach/mach_host.h>
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
+#import <dispatch/dispatch.h>
 #if HAVE_PTHREADS
 #include <pthread.h>
 #endif
@@ -63,7 +64,8 @@ public:
 	virtual ld::dylib::File*	findDylib(const char* installPath, const ld::dylib::File* fromDylib, bool speculative);
 	
 	// iterates all atoms in initial files
-	void						forEachInitialAtom(ld::File::AtomHandler&, ld::Internal& state);
+	void forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal& state, dispatch_group_t group);
+	//void						forEachInitialAtom(ld::File::AtomHandler&, ld::Internal& state);
 	// searches libraries for name
 	bool						searchLibraries(const char* name, bool searchDylibs, bool searchArchives,  
 																  bool dataSymbolOnly, ld::File::AtomHandler&) const;

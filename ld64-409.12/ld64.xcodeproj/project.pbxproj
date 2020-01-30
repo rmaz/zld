@@ -45,6 +45,10 @@
 
 /* Begin PBXBuildFile section */
 		4C7D5B8723D8F337006E515E /* libhash2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7D5B8623D8F336006E515E /* libhash2.a */; };
+		4CF46D0E23E360490089B1D7 /* libfolly.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF46D0D23E360490089B1D7 /* libfolly.dylib */; };
+		4CF46D0F23E360490089B1D7 /* libfolly.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 4CF46D0D23E360490089B1D7 /* libfolly.dylib */; };
+		4CF46D1223E364020089B1D7 /* libglog.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 4CF46D1123E364020089B1D7 /* libglog.dylib */; };
+		4CF46D1323E364020089B1D7 /* libglog.dylib in Embed Libraries */ = {isa = PBXBuildFile; fileRef = 4CF46D1123E364020089B1D7 /* libglog.dylib */; };
 		83046A851C8FF2F700024A7E /* objcimageinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83046A841C8FF2D000024A7E /* objcimageinfo.cpp */; };
 		B028FCF21A9E7C3F00E3584B /* bitcode_bundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B028FCF11A9E7C3F00E3584B /* bitcode_bundle.cpp */; };
 		B3B672421406D42800A376BB /* Snapshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3B672411406D42800A376BB /* Snapshot.cpp */; };
@@ -209,6 +213,18 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		4CF46D1023E360490089B1D7 /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				4CF46D0F23E360490089B1D7 /* libfolly.dylib in Embed Libraries */,
+				4CF46D1323E364020089B1D7 /* libglog.dylib in Embed Libraries */,
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F97F5025070D0B6300B9FCD7 /* copy man page */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 8;
@@ -269,6 +285,8 @@
 		4C7D5B8323D8D46B006E515E /* hash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hash.h; path = "../../examples/abseil-cpp/absl/hash/hash.h"; sourceTree = "<group>"; };
 		4C7D5B8623D8F336006E515E /* libhash2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhash2.a; path = ../../examples/build/libhash2.a; sourceTree = "<group>"; };
 		4CBE443423D793D00084D187 /* libjemalloc_pic.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libjemalloc_pic.a; path = ../../jemalloc/lib/libjemalloc_pic.a; sourceTree = "<group>"; };
+		4CF46D0D23E360490089B1D7 /* libfolly.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libfolly.dylib; path = ../../../../../usr/local/lib/libfolly.dylib; sourceTree = "<group>"; };
+		4CF46D1123E364020089B1D7 /* libglog.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglog.dylib; path = ../../../../../usr/local/lib/libglog.dylib; sourceTree = "<group>"; };
 		83046A831C8FF23E00024A7E /* objcimageinfo */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = objcimageinfo; sourceTree = BUILT_PRODUCTS_DIR; };
 		83046A841C8FF2D000024A7E /* objcimageinfo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = objcimageinfo.cpp; path = src/other/objcimageinfo.cpp; sourceTree = "<group>"; };
 		B028FCF01A9E7B4A00E3584B /* bitcode_bundle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bitcode_bundle.h; sourceTree = "<group>"; };
@@ -389,6 +407,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				4C7D5B8723D8F337006E515E /* libhash2.a in Frameworks */,
+				4CF46D1223E364020089B1D7 /* libglog.dylib in Frameworks */,
+				4CF46D0E23E360490089B1D7 /* libfolly.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -430,6 +450,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		4CF46D0C23E360490089B1D7 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				4CF46D1123E364020089B1D7 /* libglog.dylib */,
+				4CF46D0D23E360490089B1D7 /* libfolly.dylib */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		F9023C2C06D5A227001BBF46 = {
 			isa = PBXGroup;
 			children = (
@@ -438,6 +467,7 @@
 				F9B813B00EC27B9E00F94C13 /* other */,
 				F9B8137E0EC2651200F94C13 /* doc */,
 				F9023C3A06D5A23E001BBF46 /* Products */,
+				4CF46D0C23E360490089B1D7 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -657,6 +687,7 @@
 				F9023C3706D5A23E001BBF46 /* Frameworks */,
 				F97F5025070D0B6300B9FCD7 /* copy man page */,
 				F94E0A911CAC6B870092DC75 /* Add libtapi symlink */,
+				4CF46D1023E360490089B1D7 /* Embed Libraries */,
 			);
 			buildRules = (
 				F9E8D4BE07FCAF2A00FD5801 /* PBXBuildRule */,
@@ -1244,7 +1275,7 @@
 		F933D91C09291AC90083EAC8 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				COPY_PHASE_STRIP = NO;
 				CURRENT_PROJECT_VERSION = "$(RC_ProjectSourceVersion)";
@@ -1289,6 +1320,7 @@
 					"$(SRCROOT)/../llvm-7.0.1.src/include",
 					"$(SRCROOT)/../cfe-7.0.1.src/include",
 					"/Users/michael/projects/examples/abseil-cpp",
+					/usr/local/include,
 				);
 				INSTALL_PATH = "$(DT_VARIANT)/$(TOOLCHAIN_INSTALL_DIR)/usr/bin";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../lib/";
@@ -1297,6 +1329,7 @@
 					"$(PROJECT_DIR)",
 					/Users/michael/projects/jemalloc/lib,
 					/Users/michael/projects/examples/build,
+					/usr/local/lib,
 				);
 				LINKER_DISPLAYS_MANGLED_NAMES = NO;
 				LLVM_LTO = NO;
@@ -1331,7 +1364,7 @@
 		F933D91D09291AC90083EAC8 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_USE_OPTIMIZATION_PROFILE = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1381,6 +1414,7 @@
 					"$(SRCROOT)/../llvm-7.0.1.src/include",
 					"$(SRCROOT)/../cfe-7.0.1.src/include",
 					"/Users/michael/projects/examples/abseil-cpp",
+					/usr/local/include,
 				);
 				INSTALL_PATH = "$(DT_VARIANT)/$(TOOLCHAIN_INSTALL_DIR)/usr/bin";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../lib/";
@@ -1389,6 +1423,7 @@
 					"$(PROJECT_DIR)",
 					/Users/michael/projects/jemalloc/lib,
 					/Users/michael/projects/examples/build,
+					/usr/local/lib,
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.14;
@@ -1628,7 +1663,7 @@
 		F9849FFA10B5DE8E009E9878 /* Release-assert */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_USE_OPTIMIZATION_PROFILE = NO;
 				COPY_PHASE_STRIP = NO;
@@ -1677,6 +1712,7 @@
 					"$(SRCROOT)/../llvm-7.0.1.src/include",
 					"$(SRCROOT)/../cfe-7.0.1.src/include",
 					"/Users/michael/projects/examples/abseil-cpp",
+					/usr/local/include,
 				);
 				INSTALL_PATH = "$(DT_VARIANT)/$(TOOLCHAIN_INSTALL_DIR)/usr/bin";
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/../lib/";
@@ -1685,6 +1721,7 @@
 					"$(PROJECT_DIR)",
 					/Users/michael/projects/jemalloc/lib,
 					/Users/michael/projects/examples/build,
+					/usr/local/lib,
 				);
 				LLVM_LTO = NO;
 				MACOSX_DEPLOYMENT_TARGET = 10.14;

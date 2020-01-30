@@ -48,6 +48,7 @@
 #include "ld.hpp"
 #include "absl/container/flat_hash_map.h"
 #include "absl/container/btree_map.h"
+#include "folly/AtomicHashMap.h"
 
 namespace ld {
 namespace tool {
@@ -59,7 +60,7 @@ public:
 	typedef uint32_t IndirectBindingSlot;
 
 private:
-	typedef LDMap<const char*, IndirectBindingSlot, CStringHash, CStringPtrEquals> NameToSlot;//LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	typedef folly::AtomicHashMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;//LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
 
 	class ContentFuncs {
 	public:

@@ -303,7 +303,7 @@ void Resolver::buildAtomList()
 {
 	// each input files contributes initial atoms
 	_atoms.reserve(1024);
-	_inputFiles.forEachInitialAtom(*this, _internal);
+	_inputFiles.forEachInitialAtom(*this, _internal, _group);
     
 	_completedInitialObjectFiles = true;
 	
@@ -669,7 +669,7 @@ void Resolver::doAtom(const ld::Atom& atom, FastFileMap *fileMap)
 
 	// add to list of known atoms
 	_atoms.push_back(&atom);
-	
+
 	// adjust scope
 	if ( _options.hasExportRestrictList() || _options.hasReExportList() ) {
 		const char* name = atom.name();
@@ -757,7 +757,11 @@ void Resolver::doAtom(const ld::Atom& atom, FastFileMap *fileMap)
 	}
 
 	// convert references by-name or by-content to by-slot
-	this->convertReferencesToIndirect(atom, fileMap);
+	dispatch_group_async(_group, _queue, ^{
+		//FastFileMap fileMap;
+		//fileMap.lock = &_lock;
+    	this->convertReferencesToIndirect(atom);
+	});
 	
 	// remember if any atoms are proxies that require LTO
 	if ( atom.contentType() == ld::Atom::typeLTOtemporary )

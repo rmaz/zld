@@ -61,8 +61,9 @@ struct CPointerEquals
 };
 
 struct FastFileMap {
-	LDMap<const char*, int32_t, CPointerHash, CPointerEquals> *fileMap;
-	uint32_t objcMsgSendSlot = -1;
+	pthread_rwlock_t *lock;
+	//LDMap<const char*, int32_t, CPointerHash, CPointerEquals> *fileMap;
+	//uint32_t objcMsgSendSlot = -1;
 };
 
 namespace ld {

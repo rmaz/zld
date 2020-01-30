@@ -48,6 +48,7 @@
 #include "ld.hpp"
 #include "SymbolTable.h"
 
+#include <dispatch/dispatch.h>
 
 namespace ld {
 namespace tool {
@@ -61,6 +62,9 @@ public:
 							Resolver(const Options& opts, InputFiles& inputs, ld::Internal& state) 
 								: _options(opts), _inputFiles(inputs), _internal(state), 
 								  _symbolTable(opts, state.indirectBindingTable),
+                                  _group(dispatch_group_create()),
+                                  _queue(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0)),
+                                  _lock(PTHREAD_RWLOCK_INITIALIZER),
 								  _haveLLVMObjs(false),
 								  _completedInitialObjectFiles(false),
 								  _ltoCodeGenFinished(false),
@@ -131,6 +135,9 @@ private:
 	std::vector<const ld::Atom*>	_atomsWithUnresolvedReferences;
 	std::vector<const class AliasAtom*>	_aliasesFromCmdLine;
 	SymbolTable						_symbolTable;
+	dispatch_group_t _group;
+	dispatch_queue_t _queue;
+	pthread_rwlock_t _lock;
 	bool							_haveLLVMObjs;
 	bool							_completedInitialObjectFiles;
 	bool							_ltoCodeGenFinished;

@@ -52,6 +52,7 @@
 #include <algorithm>
 #include <dlfcn.h>
 #include <AvailabilityMacros.h>
+#import <dispatch/dispatch.h>
 
 #include "Options.h"
 
@@ -1190,11 +1191,12 @@ void InputFiles::waitForInputFiles(InputFiles *inputFiles) {
 #endif
 
 
-void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal& state)
+void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal& state, dispatch_group_t group)
 {
 	// add all direct object, archives, and dylibs
 	const std::vector<Options::FileInfo>& files = _options.getInputFiles();
 	size_t fileIndex;
+	//dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
 	for (fileIndex=0; fileIndex<_inputFiles.size(); fileIndex++) {
 		ld::File *file;
 #if HAVE_PTHREADS
@@ -1262,12 +1264,16 @@ void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal
 				break;
 		}
 		try {
-			file->forEachAtom(handler);
+			//dispatch_group_async(_group, queue, ^{
+    			file->forEachAtom(handler);
+			//});
 		}
 		catch (const char* msg) {
 			asprintf((char**)&_exception, "%s file '%s'", msg, file->path());
+			abort();
 		}
 	}
+	dispatch_group_wait(group, 5000);
 	if (_exception)
 		throw _exception;
 
@@ -1281,7 +1287,7 @@ void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal
 		file->forEachAtom(handler);
 		fileIndex++;
 	}
-    
+
     switch ( _options.outputKind() ) {
         case Options::kStaticExecutable:
         case Options::kDynamicExecutable:
