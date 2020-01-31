@@ -57,11 +57,13 @@ namespace tool {
 // HACK, I can't find a way to pass values in the compare classes (e.g. ContentFuncs)
 // so use global variable to pass info.
 static ld::IndirectBindingTable*	_s_indirectBindingTable = NULL;
+//static void *_s_byNameTable;
 
 
 SymbolTable::SymbolTable(const Options& opts, std::vector<const ld::Atom*>& ibt) 
-	: _options(opts), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false), _byNameTable(5000)
-{  
+	: _options(opts), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false), _byNameTable(500000)
+{
+	//printf("zz %p\n", &_byNameTable);
 	_s_indirectBindingTable = this;
 }
 
@@ -114,6 +116,16 @@ size_t SymbolTable::ReferencesHashFuncs::operator()(const ld::Atom* atom) const
 bool SymbolTable::ReferencesHashFuncs::operator()(const ld::Atom* left, const ld::Atom* right) const
 {
 	return left->canCoalesceWith(*right, *_s_indirectBindingTable);
+}
+
+static pthread_mutex_t sMutex = PTHREAD_MUTEX_INITIALIZER;
+
+static int LDLock() {
+	return pthread_mutex_lock(&sMutex);
+}
+
+static void LDUnlock(int *unused) {
+	pthread_mutex_unlock(&sMutex);
 }
 
 
@@ -400,6 +412,7 @@ bool SymbolTable::addByName(const ld::Atom& newAtom, bool ignoreDuplicates)
 	assert(newAtom.name() != NULL);
 	const char* name = newAtom.name();
 	IndirectBindingSlot slot = this->findSlotForName(name);
+	__attribute__((cleanup(LDUnlock))) int __tmp = LDLock();
 	const ld::Atom* existingAtom = _indirectBindingTable[slot];
 	//fprintf(stderr, "addByName(%p) name=%s, slot=%u, existing=%p\n", &newAtom, newAtom.name(), slot, existingAtom);
 	if ( existingAtom != NULL ) {
@@ -482,20 +495,21 @@ bool SymbolTable::add(const ld::Atom& atom, bool ignoreDuplicates)
 {
 	//fprintf(stderr, "SymbolTable::add(%p), name=%s\n", &atom, atom.name());
 	assert(atom.scope() != ld::Atom::scopeTranslationUnit);
+	bool ret = false;
 	switch ( atom.combine() ) {
 		case ld::Atom::combineNever:
 		case ld::Atom::combineByName:
-			return this->addByName(atom, ignoreDuplicates);
+			ret = this->addByName(atom, ignoreDuplicates);
 			break;
 		case ld::Atom::combineByNameAndContent:
-			return this->addByContent(atom);
+			ret = this->addByContent(atom);
 			break;
 		case ld::Atom::combineByNameAndReferences:
-			return this->addByReferences(atom);
+			ret = this->addByReferences(atom);
 			break;
 	}
 
-	return false;
+	return ret;
 }
 
 void SymbolTable::markCoalescedAway(const ld::Atom* atom)
@@ -587,8 +601,10 @@ static LDMap<const char *, int, CStringHash, CStringEquals> foundzMap;
 
 static int foundz = 0;
 static int nfoundz = 0;
-/*__attribute__((destructor))*/ void aaazz() {
+__attribute__((destructor)) void aaazz() {
 	// create an empty vector of pairs
+	//printf("qq %d\n", _s_indirectBindingTable->_byNameTable.size());
+	return;
 	std::vector<std::pair<const char *, int>> vec;
 
 	typedef std::pair<const char *, int> Pair;
@@ -624,62 +640,29 @@ static int nfoundz = 0;
 // find existing or create new slot
 SymbolTable::IndirectBindingSlot SymbolTable::findSlotForName(const char* name, FastFileMap *seenPerFile)
 {
-	//if (name[1] == 'o' && (lastObjcMsgSend == name || strcmp(name, "_objcMsgSend"))) {
-	//}
-	/*if (strcmp(name, "_objc_msgSend") == 0 || strcmp(name, "_objc_storeStrong") == 0 || strcmp(name, "_objc_release") == 0) {
-		foundz++;
-	} else {
-		nfoundz++;
-	}*/
-	/*if (strstr(name, "_objc") == name) {
-		foundz++;
-	} else {
-		nfoundz++;
-	}*/
-	/*if (foundzMap.contains(name)) {
-    	foundzMap[name]++;
-	} else {
-		foundzMap[name] = 1;
-	}
-	if (seenPerFile) {
-    	auto filePos = seenPerFile->fileMap->find(name);
-    	if (filePos != seenPerFile->fileMap->end()) {
-    		return filePos->second;
-    	}
-	}*/
-	if (seenPerFile) {
-    	pthread_rwlock_rdlock(seenPerFile->lock);
-	}
-	NameToSlot::iterator pos = _byNameTable.find(name);
-	size_t size = _byNameTable.size();
-	if (seenPerFile) {
-    	pthread_rwlock_unlock(seenPerFile->lock);
-	}
-	if ( pos != _byNameTable.end() )  {
+	/*if ( pos != _byNameTable.end() )  {
 		IndirectBindingSlot slot = pos->second;
 		return slot;
 	}
-	if (seenPerFile) {
-    	pthread_rwlock_wrlock(seenPerFile->lock);
-		if (size != _byNameTable.size()) {
-			auto newFind = _byNameTable.find(name);
-			if (newFind != _byNameTable.end()) {
-            	pthread_rwlock_unlock(seenPerFile->lock);
-				return newFind->second;
-			}
-		}
-	}
+	//__attribute__((cleanup(LDUnlock))) int __tmp = LDLock();
+	auto newPos = _byNameTable.find(name);
+	if (newPos != _byNameTable.end()) {
+		return newPos->second;
+	}*/
 	// create new slot for this name
 	SymbolTable::IndirectBindingSlot slot = _indirectBindingTable.size();
-	_indirectBindingTable.push_back(NULL);
-	_byNameTable.numSubMaps();
-	_byNameTable.insert(name, slot);// [name] = slot;
+	//_indirectBindingTable.push_back(NULL);
+	//_byNameTable[name] = slot;
+	_byNameTable.recToIdx(name, slot);
+	//_byNameTable.insert(name, slot);
 	_byNameReverseTable[slot] = name;
-	if (seenPerFile) {
-    	pthread_rwlock_unlock(seenPerFile->lock);
-	}
 	//nfoundz++;
-	return slot;
+	auto iter = _byNameTable.find(name);
+	if (iter == _byNameTable.end()) {
+		abort();
+	} else {
+		return iter->second;
+	}
 }
 
 void SymbolTable::removeDeadAtoms()
@@ -779,6 +762,7 @@ void SymbolTable::removeDeadAtoms()
 // find existing or create new slot
 SymbolTable::IndirectBindingSlot SymbolTable::findSlotForContent(const ld::Atom* atom, const ld::Atom** existingAtom)
 {
+	__attribute__((cleanup(LDUnlock))) int __tmp = LDLock();
 	//fprintf(stderr, "findSlotForContent(%p)\n", atom);
 	SymbolTable::IndirectBindingSlot slot = 0;
 	UTF16StringToSlot::iterator upos;
@@ -866,6 +850,7 @@ SymbolTable::IndirectBindingSlot SymbolTable::findSlotForContent(const ld::Atom*
 // find existing or create new slot
 SymbolTable::IndirectBindingSlot SymbolTable::findSlotForReferences(const ld::Atom* atom, const ld::Atom** existingAtom)
 {
+	__attribute__((cleanup(LDUnlock))) int __tmp = LDLock();
 	//fprintf(stderr, "findSlotForReferences(%p)\n", atom);
 	
 	SymbolTable::IndirectBindingSlot slot = 0;

@@ -683,11 +683,11 @@
 			buildPhases = (
 				F9E8DB4D11921594007B4D6A /* make configure.h */,
 				B3C7A09714295B60005FC714 /* make compile_stub string */,
-				F9023C3606D5A23E001BBF46 /* Sources */,
 				F9023C3706D5A23E001BBF46 /* Frameworks */,
+				4CF46D1023E360490089B1D7 /* Embed Libraries */,
+				F9023C3606D5A23E001BBF46 /* Sources */,
 				F97F5025070D0B6300B9FCD7 /* copy man page */,
 				F94E0A911CAC6B870092DC75 /* Add libtapi symlink */,
-				4CF46D1023E360490089B1D7 /* Embed Libraries */,
 			);
 			buildRules = (
 				F9E8D4BE07FCAF2A00FD5801 /* PBXBuildRule */,
@@ -889,7 +889,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"${CONFIGURATION}\" == \"Debug\" ]; then\n    cd \"${TARGET_BUILD_DIR}\"\n    cd ..\n    mkdir -p lib\n    cd lib\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libLTO.dylib\"\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libtapi.dylib\"\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libswiftDemangle.dylib\"\nfi\n\n";
+			shellScript = "    cd \"${TARGET_BUILD_DIR}\"\n    cd ..\n    mkdir -p lib\n    cd lib\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libLTO.dylib\"\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libtapi.dylib\"\n    ln -s -f \"${DT_TOOLCHAIN_DIR}/usr/lib/libswiftDemangle.dylib\"\n\n";
 			showEnvVarsInLog = 0;
 		};
 		F96D5367094A2754008E9EE8 /* ShellScript */ = {

@@ -1235,7 +1235,7 @@ struct CStringPtrEquals
 
 struct CStringEquals
 {
-	bool operator()(const char* left, const char* right) const { return (strcmp(left, right) == 0); }
+	bool operator()(const char* left, const char* right) const { return left != (const char *)0xffffffffffffffff && right != (const char *)0xffffffffffffffff && right != (const char *)0xfffffffffffffffe && left != (const char *)0xfffffffffffffffe && (strcmp(left, right) == 0); }
 };
 
 typedef	LDSet<const char*, ld::CStringHash, ld::CStringEquals>  CStringSet;

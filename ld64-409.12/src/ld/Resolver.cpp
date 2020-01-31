@@ -307,7 +307,7 @@ void Resolver::buildAtomList()
     
 	_completedInitialObjectFiles = true;
 	
-	//_symbolTable.printStatistics();
+	_symbolTable.printStatistics();
 }
 
 
@@ -757,11 +757,11 @@ void Resolver::doAtom(const ld::Atom& atom, FastFileMap *fileMap)
 	}
 
 	// convert references by-name or by-content to by-slot
-	dispatch_group_async(_group, _queue, ^{
+	//dispatch_group_async(_group, _queue, ^{
 		//FastFileMap fileMap;
 		//fileMap.lock = &_lock;
     	this->convertReferencesToIndirect(atom);
-	});
+	//});
 	
 	// remember if any atoms are proxies that require LTO
 	if ( atom.contentType() == ld::Atom::typeLTOtemporary )

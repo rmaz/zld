@@ -60,7 +60,9 @@ public:
 	typedef uint32_t IndirectBindingSlot;
 
 private:
-	typedef folly::AtomicHashMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;//LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	//typedef LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	typedef folly::AtomicHashMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	//LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
 
 	class ContentFuncs {
 	public:
