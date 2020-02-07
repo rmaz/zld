@@ -31,7 +31,7 @@
       </Testables>
    </TestAction>
    <LaunchAction
-      buildConfiguration = "Release"
+      buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
       enableASanStackUseAfterReturn = "YES"
@@ -63,6 +63,11 @@
             key = "DYLD_INSERT_LIBRARIES"
             value = "/Users/michael/projects/rpmalloc/build/ninja/macos/debug/x86-64/rpmalloc-32e30f9/librpmallocwrap.dylib"
             isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "TSAN_OPTIONS"
+            value = "history_size=3"
+            isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
             key = "DYLD_PRINT_INTERPOSING"
