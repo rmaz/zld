@@ -44,9 +44,10 @@
 /* End PBXAggregateTarget section */
 
 /* Begin PBXBuildFile section */
-		4C7D5B8723D8F337006E515E /* libhash2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7D5B8623D8F336006E515E /* libhash2.a */; };
 		4C860FFB23F056A400359B8A /* InputFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C860FFA23F056A400359B8A /* InputFiles.cpp */; };
 		4C860FFD23F056B400359B8A /* archive_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C860FFC23F056B400359B8A /* archive_file.cpp */; };
+		4C86100023F06C4C00359B8A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C860FFE23F06C3500359B8A /* QuartzCore.framework */; };
+		4C86100123F06C4C00359B8A /* QuartzCore.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 4C860FFE23F06C3500359B8A /* QuartzCore.framework */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		83046A851C8FF2F700024A7E /* objcimageinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83046A841C8FF2D000024A7E /* objcimageinfo.cpp */; };
 		B028FCF21A9E7C3F00E3584B /* bitcode_bundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B028FCF11A9E7C3F00E3584B /* bitcode_bundle.cpp */; };
 		B3B672421406D42800A376BB /* Snapshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3B672411406D42800A376BB /* Snapshot.cpp */; };
@@ -209,6 +210,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		4C86100223F06C4C00359B8A /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				4C86100123F06C4C00359B8A /* QuartzCore.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		F97F5025070D0B6300B9FCD7 /* copy man page */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 8;
@@ -266,10 +278,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		4C7D5B8323D8D46B006E515E /* hash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hash.h; path = "../../examples/abseil-cpp/absl/hash/hash.h"; sourceTree = "<group>"; };
-		4C7D5B8623D8F336006E515E /* libhash2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhash2.a; path = ../../examples/build/libhash2.a; sourceTree = "<group>"; };
 		4C860FFA23F056A400359B8A /* InputFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InputFiles.cpp; path = src/ld/InputFiles.cpp; sourceTree = "<group>"; };
 		4C860FFC23F056B400359B8A /* archive_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = archive_file.cpp; sourceTree = "<group>"; };
+		4C860FFE23F06C3500359B8A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		4CF05E8E23EB005B009C0C95 /* libsystem_malloc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_malloc.tbd; path = usr/lib/system/libsystem_malloc.tbd; sourceTree = SDKROOT; };
 		4CF05E9023EB0093009C0C95 /* libSystem.B.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.B.tbd; path = usr/lib/libSystem.B.tbd; sourceTree = SDKROOT; };
 		4CF05E9323EB0151009C0C95 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/System.framework; sourceTree = DEVELOPER_DIR; };
@@ -391,7 +402,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C7D5B8723D8F337006E515E /* libhash2.a in Frameworks */,
+				4C86100023F06C4C00359B8A /* QuartzCore.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -436,6 +447,7 @@
 		4CF05E8D23EB005B009C0C95 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				4C860FFE23F06C3500359B8A /* QuartzCore.framework */,
 				4CF05E9523EB0201009C0C95 /* libsystem_malloc.dylib */,
 				4CF05E9323EB0151009C0C95 /* System.framework */,
 				4CF05E9023EB0093009C0C95 /* libSystem.B.tbd */,
@@ -584,9 +596,7 @@
 				F9AA69C010583E19003E3539 /* Resolver.h */,
 				F9AA69B410583C0C003E3539 /* SymbolTable.cpp */,
 				F9AA69B510583C0C003E3539 /* SymbolTable.h */,
-				4C7D5B8623D8F336006E515E /* libhash2.a */,
 				4C860FFA23F056A400359B8A /* InputFiles.cpp */,
-				4C7D5B8323D8D46B006E515E /* hash.h */,
 				F9AA687B10572E27003E3539 /* InputFiles.h */,
 				F9AA5FCC103F5CD1003E3539 /* ld.hpp */,
 				F9023C3F06D5A254001BBF46 /* ld.cpp */,
@@ -671,6 +681,7 @@
 				F9023C3706D5A23E001BBF46 /* Frameworks */,
 				F97F5025070D0B6300B9FCD7 /* copy man page */,
 				F94E0A911CAC6B870092DC75 /* Add libtapi symlink */,
+				4C86100223F06C4C00359B8A /* Embed Frameworks */,
 			);
 			buildRules = (
 				F9E8D4BE07FCAF2A00FD5801 /* PBXBuildRule */,

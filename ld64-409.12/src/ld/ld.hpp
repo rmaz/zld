@@ -1203,7 +1203,12 @@ struct CStringHash {
 };
 struct CStringEquals
 {
-	bool operator()(const char* left, const char* right) const { return (strcmp(left, right) == 0); }
+	bool operator()(const char* left, const char* right) const {
+		if (left == right) {
+			return true;
+		}
+		return left != NULL && right != NULL && strcmp(left, right) == 0;
+	}
 };
 
 typedef	std::unordered_set<const char*, ld::CStringHash, ld::CStringEquals>  CStringSet;

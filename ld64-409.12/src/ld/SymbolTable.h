@@ -41,6 +41,7 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 
+#include <sparsehash/dense_hash_map>
 #include <vector>
 #include <unordered_map>
 
@@ -51,13 +52,15 @@ namespace ld {
 namespace tool {
 
 
+static const int Hasher = 0;
+
 class SymbolTable : public ld::IndirectBindingTable
 {
 public:
 	typedef uint32_t IndirectBindingSlot;
 
 private:
-	typedef std::unordered_map<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	typedef google::dense_hash_map<const char *, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
 
 	class ContentFuncs {
 	public:
@@ -114,6 +117,7 @@ public:
 
 	bool				add(const ld::Atom& atom, bool ignoreDuplicates);
 	IndirectBindingSlot	findSlotForName(const char* name);
+	void dumpCache();
 	IndirectBindingSlot	findSlotForContent(const ld::Atom* atom, const ld::Atom** existingAtom);
 	IndirectBindingSlot	findSlotForReferences(const ld::Atom* atom, const ld::Atom** existingAtom);
 	const ld::Atom*		atomForSlot(IndirectBindingSlot s)	{ return _indirectBindingTable[s]; }

@@ -41,6 +41,8 @@
 #include <set>
 #include <vector>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include "Options.h"
 
@@ -60,8 +62,9 @@ static ld::IndirectBindingTable*	_s_indirectBindingTable = NULL;
 
 
 SymbolTable::SymbolTable(const Options& opts, std::vector<const ld::Atom*>& ibt) 
-	: _options(opts), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false)
-{  
+	: _options(opts), _byNameTable(5000), _cstringTable(6151), _indirectBindingTable(ibt), _hasExternalTentativeDefinitions(false)
+{
+	_byNameTable.set_empty_key(NULL);
 	_s_indirectBindingTable = this;
 }
 
@@ -582,18 +585,68 @@ bool SymbolTable::hasName(const char* name)
 	return (_indirectBindingTable[pos->second] != NULL); 
 }
 
+#include <mach/mach_time.h>
+
+int getUptimeInMilliseconds()
+{
+    const int64_t kOneMillion = 1000 * 1000;
+    mach_timebase_info_data_t s_timebase_info;
+	mach_timebase_info(&s_timebase_info);
+
+    return (int)((mach_absolute_time() * s_timebase_info.numer) / (kOneMillion * s_timebase_info.denom));
+}
+
+void SymbolTable::dumpCache() {
+	auto start = getUptimeInMilliseconds();
+	int fd = open("/tmp/ld_hash", O_RDONLY);
+	struct stat stats;
+	fstat(fd, &stats);
+	auto size = stats.st_size;
+	const char *bytes = (const char *)malloc(size);
+	const char *end = bytes + size;
+	NameToSlot map;
+	read(fd, (void *)bytes, (size_t)size);
+	const char *curr = bytes;
+	while (curr < end) {
+		const char *str = curr;
+		auto len = strlen(curr);
+		curr += len + 1;
+		unsigned int slot;
+		memcpy(&slot, curr, sizeof(slot));
+		curr += sizeof(slot);
+		
+		map[str] = slot;
+	}
+	auto fin = getUptimeInMilliseconds();
+	printf("zz %lf\n", fin - start);
+	
+	std::ofstream file("/tmp/ld_hash");
+	std::vector<std::byte> chars;
+	for (auto pair : _byNameTable) {
+    	auto bytes = reinterpret_cast<std::byte const*>(pair.first);
+        chars.insert(chars.end(), bytes, bytes + strlen(pair.first) + 1);
+		auto slot = pair.second;
+		auto intBytes = (std::byte const*)&slot;
+		chars.insert(chars.end(), intBytes, intBytes + sizeof(slot));
+	}
+	file.write((char *)chars.data(), chars.size());
+	file.close();
+}
+
+
 // find existing or create new slot
 SymbolTable::IndirectBindingSlot SymbolTable::findSlotForName(const char* name)
 {
-	NameToSlot::iterator pos = _byNameTable.find(name);
-	if ( pos != _byNameTable.end() ) 
-		return pos->second;
-	// create new slot for this name
-	SymbolTable::IndirectBindingSlot slot = _indirectBindingTable.size();
-	_indirectBindingTable.push_back(NULL);
-	_byNameTable[name] = slot;
-	_byNameReverseTable[slot] = name;
-	return slot;
+	auto iter = _byNameTable.find(name);
+	if (iter == _byNameTable.end()) {
+		auto slot = _indirectBindingTable.size();
+		_byNameTable[name] = slot;
+		_indirectBindingTable.push_back(NULL);
+		_byNameReverseTable[slot] = name;
+		return slot;
+	} else {
+		return iter->second;
+	}
 }
 
 void SymbolTable::removeDeadAtoms()

@@ -71,6 +71,7 @@ public:
 		virtual void		doFile(const class File&);
 		
 		void				resolve();
+    	void dumpCache();
 
 
 private:

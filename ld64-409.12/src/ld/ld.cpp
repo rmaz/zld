@@ -1317,6 +1317,7 @@ const char* dyld_lazy_dylib_path_fix(const char* path)
 
 int main(int argc, const char* argv[])
 {
+	system("rm /Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/toolkit/library/build/XUL");
 	const char* archName = NULL;
 	bool showArch = false;
 	bool archInferred = false;
@@ -1415,6 +1416,8 @@ int main(int argc, const char* argv[])
 			fprintf(stderr, "ld: fatal warning(s) induced error (-fatal_warnings)\n");
 			return 1;
 		}
+		assert(system("cmp -s XUL /tmp/xul_old") == 0);
+		//resolver.dumpCache();
 	}
 	catch (const char* msg) {
 		if ( strstr(msg, "malformed") != NULL )
@@ -1425,6 +1428,7 @@ int main(int argc, const char* argv[])
 			fprintf(stderr, "ld: %s for architecture %s\n", msg, archName);
 		else
 			fprintf(stderr, "ld: %s\n", msg);
+		abort();
 		return 1;
 	}
 

@@ -49,6 +49,8 @@
 #include <algorithm>
 #include <dlfcn.h>
 #include <AvailabilityMacros.h>
+#include <iostream>
+#include <fstream>
 
 #include "Options.h"
 #include "ld.hpp"
@@ -864,6 +866,9 @@ void Resolver::convertReferencesToIndirect(const ld::Atom& atom)
 	}
 }
 
+void Resolver::dumpCache() {
+	_symbolTable.dumpCache();
+}
 
 void Resolver::addInitialUndefines()
 {
