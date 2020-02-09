@@ -4667,7 +4667,7 @@ void Options::reconfigureDefaults()
 			break;
 		case Options::kDyld:
 			// arm64e has support for compressed LINKEDIT.
-			if ( (fArchitecture == CPU_TYPE_ARM64) && (fSubArchitecture == CPU_SUBTYPE_ARM64_E) )
+			if ( (fArchitecture == CPU_TYPE_ARM64) && false)//(fSubArchitecture == CPU_SUBTYPE_ARM64_E) )
 				break;
 		case Options::kPreload:
 		case Options::kStaticExecutable:
