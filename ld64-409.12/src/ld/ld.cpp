@@ -158,13 +158,13 @@ private:
 	struct SectionEquals {
 		bool operator()(const ld::Section* left, const ld::Section* right) const;
 	};
-	typedef LDMap<const ld::Section*, FinalSection*, SectionHash, SectionEquals> SectionInToOut;
+	typedef std::unordered_map<const ld::Section*, FinalSection*, SectionHash, SectionEquals> SectionInToOut;
 	
 
 	SectionInToOut			_sectionInToFinalMap;
 	const Options&			_options;
 	bool					_atomsOrderedInSections;
-	LDMap<const ld::Atom*, const char*> _pendingSegMove;
+	std::unordered_map<const ld::Atom*, const char*> _pendingSegMove;
 };
 
 ld::Section	InternalState::FinalSection::_s_DATA_data( "__DATA", "__data",  ld::Section::typeUnclassified);
@@ -816,10 +816,9 @@ ld::Internal::FinalSection* InternalState::getFinalSection(const ld::Section& in
 				const ld::Section& outSect = FinalSection::outputSection(inputSection, _options.mergeZeroFill());
 				pos = _sectionInToFinalMap.find(&outSect);
 				if ( pos != _sectionInToFinalMap.end() ) {
-					auto finalSection = pos->second;
-					_sectionInToFinalMap[&inputSection] = finalSection;
+					_sectionInToFinalMap[&inputSection] = pos->second;
 					//fprintf(stderr, "_sectionInToFinalMap[%p] = %p\n", &inputSection, pos->second);
-					return finalSection;
+					return pos->second;
 				}
 				else if ( outSect != inputSection ) {
 					// new output section created, but not in map
@@ -1315,11 +1314,6 @@ const char* dyld_lazy_dylib_path_fix(const char* path)
 }
 
 
-void je_zone_register(void);
-
-__attribute__((constructor)) void a() {
-	//je_zone_register();
-}
 
 int main(int argc, const char* argv[])
 {

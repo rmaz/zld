@@ -38,33 +38,6 @@
 #include <unordered_set>
 
 #include "configure.h"
-#include "absl/container/btree_map.h"
-#include "absl/container/btree_set.h"
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-#include "absl/hash/hash.h"
-#include <nmmintrin.h>
-
-#define LDOrderedMap absl::btree_map
-#define LDMap absl::flat_hash_map
-#define LDSet absl::flat_hash_set
-#define LDOrderedSet absl::btree_set
-
-struct CPointerHash {
-	std::size_t operator()(const char* __s) const {
-		return (std::size_t)__s;
-	};
-};
-
-struct CPointerEquals
-{
-	bool operator()(const char* left, const char* right) const { return left == right; }
-};
-
-struct FastFileMap {
-	LDMap<const char*, int32_t, CPointerHash, CPointerEquals> *fileMap;
-	uint32_t objcMsgSendSlot = -1;
-};
 
 namespace ld {
 
@@ -85,7 +58,7 @@ enum Platform {
 	kPlatform_watchOSSimulator=9
 };
 
-typedef LDOrderedSet<Platform> PlatformSet;
+typedef std::set<Platform> PlatformSet;
 
 //
 // minumum OS versions
@@ -95,10 +68,10 @@ typedef std::pair<Platform, uint32_t> Version;
 
 struct VersionSet {
 private:
-	LDOrderedMap<Platform, uint32_t> _versions;
+	std::map<Platform, uint32_t> _versions;
 public:
 	VersionSet() {}
-	VersionSet(const LDOrderedMap<Platform, uint32_t>& P) : _versions(P) {}
+	VersionSet(const std::map<Platform, uint32_t>& P) : _versions(P) {}
 	void add(ld::Version platformVersion) {
 		_versions.insert(platformVersion);
 	}
@@ -278,7 +251,7 @@ public:
 	class AtomHandler {
 	public:
 		virtual				~AtomHandler() {}
-		virtual void		doAtom(const class Atom&, FastFileMap *fileMap = NULL) = 0;
+		virtual void		doAtom(const class Atom&) = 0;
 		virtual void		doFile(const class File&) = 0;
 	};
 
@@ -297,13 +270,6 @@ public:
 	//
 	class Ordinal
 	{
-	public:
-		const uint64_t getNumber() const { return _ordinal; };
-		const uint16_t	partition() const		{ return (_ordinal>>48)&0xffff; }
-		const uint16_t	majorIndex() const		{ return (_ordinal>>32)&0xffff; }
-		const uint16_t	minorIndex() const		{ return (_ordinal>>16)&0xffff; }
-		const uint16_t	counter() const			{ return (_ordinal>>00)&0xffff; }
-
 	private:
 		// The actual numeric ordinal. Lower values have higher precedence and a zero value is invalid.
 		// The 64 bit ordinal is broken into 4 16 bit chunks. The high 16 bits are a "partition" that
@@ -318,6 +284,11 @@ public:
 			_ordinal = ((uint64_t)partition<<48) | ((uint64_t)majorIndex<<32) | ((uint64_t)minorIndex<<16) | ((uint64_t)counter<<0);
 		}
 		
+		const uint16_t	partition() const		{ return (_ordinal>>48)&0xffff; }
+		const uint16_t	majorIndex() const		{ return (_ordinal>>32)&0xffff; }
+		const uint16_t	minorIndex() const		{ return (_ordinal>>16)&0xffff; }
+		const uint16_t	counter() const			{ return (_ordinal>>00)&0xffff; }
+
 		const Ordinal nextMajorIndex()		const { assert(majorIndex() < 0xffff); return Ordinal(_ordinal+((uint64_t)1<<32)); }
 		const Ordinal nextMinorIndex()		const { assert(minorIndex() < 0xffff); return Ordinal(_ordinal+((uint64_t)1<<16)); }
 		const Ordinal nextCounter()		const { assert(counter() < 0xffff); return Ordinal(_ordinal+((uint64_t)1<<0)); }
@@ -370,7 +341,6 @@ public:
 	virtual uint32_t					cpuSubType() const		{ return 0; }
 	virtual uint32_t					subFileCount() const	{ return 1; }
 	virtual const VersionSet&			platforms() const		{ return _platforms; }
-	virtual void markSubFrameworksAsExported(const char *myLeaf) { }
     bool								fileExists() const     { return _modTime != 0; }
 	Type								type() const { return _type; }
 	virtual Bitcode*					getBitcode() const		{ return NULL; }
@@ -418,8 +388,7 @@ namespace relocatable {
 		struct AstTimeAndPath { uint64_t time; std::string path; };
 
 											File(const char* pth, time_t modTime, Ordinal ord)
-												: ld::File(pth, modTime, ord, Reloc) {
-												}
+												: ld::File(pth, modTime, ord, Reloc) { }
 		virtual								~File() {}
 		virtual DebugInfoKind				debugInfo() const = 0;
 		virtual const char*					debugInfoPath() const { return path(); }
@@ -486,15 +455,6 @@ namespace dylib {
 				bool						willBeUpwardDylib() const		{ return _upward; }
 				void						setWillBeRemoved(bool value)	{ _dead = value; }
 				bool						willRemoved() const				{ return _dead; }
-		void markSubFrameworksAsExported(const char *myLeaf) {
-			const char* childParent = parentUmbrella();
-			if ( childParent != NULL ) {
-				if ( strcmp(childParent, &myLeaf[1]) == 0 ) {
-					// mark that this dylib will be re-exported
-					setWillBeReExported();
-				}
-			}
-		}
 				
 		virtual void						processIndirectLibraries(DylibHandler* handler, bool addImplicitDylibs) = 0;
 		virtual bool						providedExportAtom() const = 0;
@@ -540,9 +500,6 @@ namespace archive {
 												: ld::File(pth, modTime, ord, Archive) { }
 		virtual								~File() {}
 		virtual bool						justInTimeDataOnlyforEachAtom(const char* name, AtomHandler&) const = 0;
-    	virtual void dumpMembersParsed(std::ofstream &stream) const = 0;
-		virtual std::vector<void *> membersToParse(LDSet<std::string> &set) const = 0;
-		virtual void parseMember(void *member) const = 0;
 	};
 } // namespace archive 
 
@@ -1235,132 +1192,21 @@ public:
 
 
 
-static size_t zz, zzz;
-
-/*__attribute__((destructor)) static void ff() {
-	printf("zz: %lu, %lu\n", zz, zzz);
-}*/
-
-#if !defined (get16bits)
-#define get16bits(d) ((((uint32_t)(((const uint8_t *)(d))[1])) << 8)\
-                       +(uint32_t)(((const uint8_t *)(d))[0]) )
-#endif
-
-static size_t SuperFastHash (const char * data, int len) {
-size_t hash = len, tmp;
-size_t rem;
-
-    if (len <= 0 || data == NULL) return 0;
-
-    rem = len & 3;
-    len >>= 2;
-
-    /* Main loop */
-    for (;len > 0; len--) {
-        hash  += get16bits (data);
-        tmp    = (get16bits (data+2) << 11) ^ hash;
-        hash   = (hash << 16) ^ tmp;
-        data  += 2*sizeof (uint16_t);
-        hash  += hash >> 11;
-    }
-
-    /* Handle end cases */
-    switch (rem) {
-        case 3: hash += get16bits (data);
-                hash ^= hash << 16;
-                hash ^= ((signed char)data[sizeof (uint16_t)]) << 18;
-                hash += hash >> 11;
-                break;
-        case 2: hash += get16bits (data);
-                hash ^= hash << 11;
-                hash += hash >> 17;
-                break;
-        case 1: hash += (signed char)*data;
-                hash ^= hash << 10;
-                hash += hash >> 1;
-    }
-
-    /* Force "avalanching" of final 127 bits */
-    hash ^= hash << 3;
-    hash += hash >> 5;
-    hash ^= hash << 4;
-    hash += hash >> 17;
-    hash ^= hash << 25;
-    hash += hash >> 6;
-
-    return hash;
-}
-
-typedef struct {
-	const char *str;
-	size_t length;
-} LDString;
-
-static inline LDString LDStringCreate(const char *str) {
-	return (LDString){
-		.str = str,
-		.length = strlen(str),
-	};
-}
-
-static inline size_t CRCHash(const char *__s, size_t len) {
-	uint32_t __h = 0;
-	int curr = len;
-	uint64_t *chunks = (uint64_t *)__s;
-	while (curr >= 8) {
-		__h = (uint32_t)_mm_crc32_u64((uint64_t)__h, *chunks);
-		chunks++;
-		curr -= 8;
-	}
-	if (curr >= 4) {
-		uint32_t *bits = (uint32_t *)(__s + len - curr);
-		__h = _mm_crc32_u32(__h, *bits);
-		curr -= 4;
-	}
-	if (curr >= 2) {
-		uint16_t *bits = (uint16_t *)(__s + len - curr);
-		__h = _mm_crc32_u16(__h, *bits);
-		curr -= 2;
-	}
-	if (curr >= 1) {
-		__h = _mm_crc32_u8(__h, __s[len - 1]);
-	}
-	return (size_t)__h;
-}
-
-struct CLDStringHash {
-	size_t operator()(LDString __s) const {
-		return CRCHash(__s.str, __s.length);
-	}
-};
-
-// utility classes for using LDMap with c-strings
+// utility classes for using std::unordered_map with c-strings
 struct CStringHash {
 	size_t operator()(const char* __s) const {
-		int len = strlen(__s);
-		return CRCHash(__s, len);
+		size_t __h = 0;
+		for ( ; *__s; ++__s)
+			__h = 5 * __h + *__s;
+		return __h;
 	};
 };
-
-struct CLDStringEquals
-{
-	bool operator()(LDString left, LDString right) const {
-		return left.length == right.length
-		  && (left.str == right.str || memcmp(left.str, right.str, left.length) == 0);
-    }
-};
-
-struct CStringPtrEquals
-{
-	bool operator()(const char* left, const char* right) const { return left == right || (strcmp(left, right) == 0); }
-};
-
 struct CStringEquals
 {
 	bool operator()(const char* left, const char* right) const { return (strcmp(left, right) == 0); }
 };
 
-typedef	LDSet<const char*, ld::CStringHash, ld::CStringEquals>  CStringSet;
+typedef	std::unordered_set<const char*, ld::CStringHash, ld::CStringEquals>  CStringSet;
 
 
 class Internal
@@ -1387,7 +1233,7 @@ public:
 		bool							hasExternalRelocs;
 	};
 	
-	typedef LDMap<const ld::Atom*, FinalSection*>	AtomToSection;
+	typedef std::map<const ld::Atom*, FinalSection*>	AtomToSection;		
 
 	virtual uint64_t					assignFileOffsets() = 0;
 	virtual void						setSectionSizesAndAlignments() = 0;
@@ -1424,8 +1270,8 @@ public:
 	std::vector<const ld::relocatable::File*>	filesWithBitcode;
 	std::vector<const ld::relocatable::File*>	filesFromCompilerRT;
 	std::vector<const ld::Atom*>				deadAtoms;
-	LDSet<const char*>				allUndefProxies;
-	LDSet<uint64_t>				toolsVersions;
+	std::unordered_set<const char*>				allUndefProxies;
+	std::unordered_set<uint64_t>				toolsVersions;
 	const ld::dylib::File*						bundleLoader;
 	const Atom*									entryPoint;
 	const Atom*									classicBindingHelper;

@@ -154,7 +154,6 @@ public:
 
 private:
 	void						writeAtoms(ld::Internal& state, uint8_t* wholeBuffer);
-	void updatePreviousLoopValues(ld::Internal& state, std::vector<ld::Internal::FinalSection*>::iterator& sit, uint64_t *fileOffsetOfEndOfLastAtom, bool *lastAtomUsesNoOps);
 	void						computeContentUUID(ld::Internal& state, uint8_t* wholeBuffer);
 	void						buildDylibOrdinalMapping(ld::Internal&);
 	bool						hasOrdinalForInstallPath(const char* path, int* ordinal);
@@ -267,7 +266,7 @@ private:
 		uint32_t			instruction;
 	};
 
-	void setInfo(ld::Internal& state, const ld::Atom* atom, uint8_t* buffer, const LDOrderedMap<uint32_t, const Fixup*>& usedHints, 
+	void setInfo(ld::Internal& state, const ld::Atom* atom, uint8_t* buffer, const std::map<uint32_t, const Fixup*>& usedHints, 
 						uint32_t offsetInAtom, uint32_t delta, InstructionInfo* info);
 
 	static uint16_t				get16LE(uint8_t* loc);
@@ -287,7 +286,7 @@ private:
 
 
 	const Options&							_options;
-	LDOrderedMap<const ld::dylib::File*, int>	_dylibToOrdinal;
+	std::map<const ld::dylib::File*, int>	_dylibToOrdinal;
 	std::vector<const ld::dylib::File*>		_dylibsToLoad;
 	std::vector<const char*>				_dylibOrdinalPaths;
 	const bool								_hasDyldInfo;
@@ -302,7 +301,7 @@ private:
 		  bool								_hasExternalRelocations;
 		  bool								_hasOptimizationHints;
 	uint64_t								_fileSize;
-	LDOrderedMap<uint64_t, uint32_t>			_lazyPointerAddressToInfoOffset;
+	std::map<uint64_t, uint32_t>			_lazyPointerAddressToInfoOffset;
 	uint32_t								_encryptedTEXTstartOffset;
 	uint32_t								_encryptedTEXTendOffset;
 public:
@@ -315,7 +314,7 @@ public:
 	uint32_t								_globalSymbolsCount;
 	uint32_t								_importSymbolsStartIndex;
 	uint32_t								_importSymbolsCount;
-	LDMap<const ld::Atom*, uint32_t>		_atomToSymbolIndex;
+	std::map<const ld::Atom*, uint32_t>		_atomToSymbolIndex;
 	std::vector<RebaseInfo>					_rebaseInfo;
 	std::vector<BindingInfo>				_bindingInfo;
 	std::vector<BindingInfo>				_lazyBindingInfo;
@@ -324,7 +323,7 @@ public:
 	// Note, <= 0 values are indices in to rebases, > 0 are binds.
 	std::vector<int64_t>					_threadedRebaseBindIndices;
 #if SUPPORT_ARCH_arm64e
-	LDOrderedMap<uintptr_t, std::pair<Fixup::AuthData, uint64_t>> _authenticatedFixupData;
+	std::map<uintptr_t, std::pair<Fixup::AuthData, uint64_t>> _authenticatedFixupData;
 #endif
 	std::vector<SplitSegInfoEntry>			_splitSegInfos;
 	std::vector<SplitSegInfoV2Entry>		_splitSegV2Infos;

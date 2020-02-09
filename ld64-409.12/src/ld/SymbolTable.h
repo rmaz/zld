@@ -46,11 +46,10 @@
 
 #include "Options.h"
 #include "ld.hpp"
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/btree_map.h"
 
 namespace ld {
 namespace tool {
+
 
 class SymbolTable : public ld::IndirectBindingTable
 {
@@ -58,21 +57,21 @@ public:
 	typedef uint32_t IndirectBindingSlot;
 
 private:
-	typedef LDMap<LDString, IndirectBindingSlot, CLDStringHash, CLDStringEquals> NameToSlot;//LDMap<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
+	typedef std::unordered_map<const char*, IndirectBindingSlot, CStringHash, CStringEquals> NameToSlot;
 
 	class ContentFuncs {
 	public:
 		size_t	operator()(const ld::Atom*) const;
 		bool	operator()(const ld::Atom* left, const ld::Atom* right) const;
 	};
-	typedef LDMap<const ld::Atom*, IndirectBindingSlot, ContentFuncs, ContentFuncs> ContentToSlot;
+	typedef std::unordered_map<const ld::Atom*, IndirectBindingSlot, ContentFuncs, ContentFuncs> ContentToSlot;
 
 	class ReferencesHashFuncs {
 	public:
 		size_t	operator()(const ld::Atom*) const;
 		bool	operator()(const ld::Atom* left, const ld::Atom* right) const;
 	};
-	typedef LDMap<const ld::Atom*, IndirectBindingSlot, ReferencesHashFuncs, ReferencesHashFuncs> ReferencesToSlot;
+	typedef std::unordered_map<const ld::Atom*, IndirectBindingSlot, ReferencesHashFuncs, ReferencesHashFuncs> ReferencesToSlot;
 
 	class CStringHashFuncs {
 	public:
@@ -86,13 +85,13 @@ private:
 		size_t	operator()(const ld::Atom*) const;
 		bool	operator()(const ld::Atom* left, const ld::Atom* right) const;
 	};
-	typedef LDMap<const ld::Atom*, IndirectBindingSlot, UTF16StringHashFuncs, UTF16StringHashFuncs> UTF16StringToSlot;
+	typedef std::unordered_map<const ld::Atom*, IndirectBindingSlot, UTF16StringHashFuncs, UTF16StringHashFuncs> UTF16StringToSlot;
 
-	typedef LDMap<IndirectBindingSlot, const char*> SlotToName;
-	typedef LDMap<const char*, CStringToSlot*, CStringHash, CStringEquals> NameToMap;
+	typedef std::map<IndirectBindingSlot, const char*> SlotToName;
+	typedef std::unordered_map<const char*, CStringToSlot*, CStringHash, CStringEquals> NameToMap;
     
     typedef std::vector<const ld::Atom *> DuplicatedSymbolAtomList;
-    typedef LDOrderedMap<const char *, DuplicatedSymbolAtomList * > DuplicateSymbols;
+    typedef std::map<const char *, DuplicatedSymbolAtomList * > DuplicateSymbols;
 	
 public:
 
@@ -114,22 +113,21 @@ public:
 						SymbolTable(const Options& opts, std::vector<const ld::Atom*>& ibt);
 
 	bool				add(const ld::Atom& atom, bool ignoreDuplicates);
-	//IndirectBindingSlot	findSlotForName(const char* name);
-	IndirectBindingSlot findSlotForName(const char* name, FastFileMap *fileMap = NULL);
+	IndirectBindingSlot	findSlotForName(const char* name);
 	IndirectBindingSlot	findSlotForContent(const ld::Atom* atom, const ld::Atom** existingAtom);
 	IndirectBindingSlot	findSlotForReferences(const ld::Atom* atom, const ld::Atom** existingAtom);
 	const ld::Atom*		atomForSlot(IndirectBindingSlot s)	{ return _indirectBindingTable[s]; }
 	unsigned int		updateCount()						{ return _indirectBindingTable.size(); }
 	void				undefines(std::vector<const char*>& undefines);
 	void				tentativeDefs(std::vector<const char*>& undefines);
-	void				mustPreserveForBitcode(LDSet<const char*>& syms);
+	void				mustPreserveForBitcode(std::unordered_set<const char*>& syms);
 	void				removeDeadAtoms();
 	bool				hasName(const char* name);
 	bool				hasExternalTentativeDefinitions()	{ return _hasExternalTentativeDefinitions; }
 	byNameIterator		begin()								{ return byNameIterator(_byNameTable.begin(),_indirectBindingTable); }
 	byNameIterator		end()								{ return byNameIterator(_byNameTable.end(),_indirectBindingTable); }
 	void				printStatistics();
-	void				removeDeadUndefs(std::vector<const ld::Atom *>& allAtoms, const LDSet<const ld::Atom*>& keep);
+	void				removeDeadUndefs(std::vector<const ld::Atom *>& allAtoms, const std::unordered_set<const ld::Atom*>& keep);
 
 	// from ld::IndirectBindingTable
 	virtual const char*			indirectName(IndirectBindingSlot slot) const;

@@ -60,7 +60,7 @@ namespace lto {
 // magic to place command line in crash reports
 const int crashreporterBufferSize = 2000;
 static char crashreporterBuffer[crashreporterBufferSize];
-#if 0
+/*#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
 	#include <CrashReporterClient.h>
 	// hack until ld does not need to build on 10.6 anymore
     struct crashreporter_annotations_t gCRAnnotations 
@@ -70,7 +70,7 @@ static char crashreporterBuffer[crashreporterBufferSize];
 	extern "C" char* __crashreporter_info__;
 	__attribute__((used)) 
 	char* __crashreporter_info__ = crashreporterBuffer;
-#endif
+#endif*/
 
 
 static bool			sEmitWarnings = true;
@@ -433,7 +433,7 @@ bool Options::segmentOrderAfterFixedAddressSegment(const char* segName) const
 	return false;
 }
 
-bool Options::hasExportedSymbolOrder() const
+bool Options::hasExportedSymbolOrder()
 {
 	return (fExportSymbolsOrder.size() > 0);
 }
@@ -4667,7 +4667,7 @@ void Options::reconfigureDefaults()
 			break;
 		case Options::kDyld:
 			// arm64e has support for compressed LINKEDIT.
-			if ( (fArchitecture == CPU_TYPE_ARM64) && (fSubArchitecture == CPU_SUBTYPE_ARM64E) )
+			if ( (fArchitecture == CPU_TYPE_ARM64) && (fSubArchitecture == CPU_SUBTYPE_ARM64_E) )
 				break;
 		case Options::kPreload:
 		case Options::kStaticExecutable:
@@ -4681,7 +4681,7 @@ void Options::reconfigureDefaults()
 	//			macOS before 10.6
 	//			iOS before 3.1
 	if ( fMakeCompressedDyldInfoForceOff || !platforms().minOS(ld::version2009) )
-		fMakeCompressedDyldInfo = false; // change?
+		fMakeCompressedDyldInfo = false;
 
 	// only ARM and x86_64 enforces that cpu-sub-types must match
 	switch ( fArchitecture ) {
@@ -5813,8 +5813,8 @@ void Options::checkForClassic(int argc, const char* argv[])
 	bool newLinker = false;
 	
 	// build command line buffer in case ld crashes
-#if 0
-	CRSetCrashLogMessage(crashreporterBuffer);
+#if __MAC_OS_X_VERSION_MIN_REQUIRED >= 1070
+	//CRSetCrashLogMessage(crashreporterBuffer);
 #endif
 	const char* srcRoot = getenv("SRCROOT");
 	if ( srcRoot != NULL ) {

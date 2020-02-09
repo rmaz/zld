@@ -42,9 +42,7 @@
 #include <mach-o/fat.h>
 #include <sys/sysctl.h>
 #include <libkern/OSAtomic.h>
-#include <Foundation/Foundation.h>
 
-#include <fstream>
 #include <string>
 #include <map>
 #include <set>
@@ -728,12 +726,12 @@ void InputFiles::createIndirectDylibs()
 {	
 	// keep processing dylibs until no more dylibs are added
 	unsigned long lastMapSize = 0;
-	LDSet<ld::dylib::File*>  dylibsProcessed;
+	std::set<ld::dylib::File*>  dylibsProcessed;
 	while ( lastMapSize != _allDylibs.size() ) {
 		lastMapSize = _allDylibs.size();
 		// can't iterator _installPathToDylibs while modifying it, so use temp buffer
 		std::vector<ld::dylib::File*> unprocessedDylibs;
-		for (LDOrderedSet<ld::dylib::File*>::iterator it=_allDylibs.begin(); it != _allDylibs.end(); it++) {
+		for (std::set<ld::dylib::File*>::iterator it=_allDylibs.begin(); it != _allDylibs.end(); it++) {
 			if ( dylibsProcessed.count(*it) == 0 )
 				unprocessedDylibs.push_back(*it);
 		}
@@ -748,7 +746,16 @@ void InputFiles::createIndirectDylibs()
 		const char* myLeaf = strrchr(_options.installPath(), '/');
 		if ( myLeaf != NULL ) {
 			for (std::vector<class ld::File*>::const_iterator it=_inputFiles.begin(); it != _inputFiles.end(); it++) {
-				(*it)->markSubFrameworksAsExported(myLeaf);
+				ld::dylib::File* dylibReader = dynamic_cast<ld::dylib::File*>(*it);
+				if ( dylibReader != NULL ) {
+					const char* childParent = dylibReader->parentUmbrella();
+					if ( childParent != NULL ) {
+						if ( strcmp(childParent, &myLeaf[1]) == 0 ) {
+							// mark that this dylib will be re-exported
+							dylibReader->setWillBeReExported();
+						}
+					}
+				}
 			}
 		}
 	}
@@ -1133,7 +1140,7 @@ void InputFiles::waitForInputFiles()
 	try {
 		const char *fifo = _options.pipelineFifo();
 		assert(fifo);
-		LDOrderedMap<const char *, const Options::FileInfo*, strcompclass> fileMap;
+		std::map<const char *, const Options::FileInfo*, strcompclass> fileMap;
 		const std::vector<Options::FileInfo>& files = _options.getInputFiles();
 		for (std::vector<Options::FileInfo>::const_iterator it = files.begin(); it != files.end(); ++it) {
 			const Options::FileInfo& entry = *it;
@@ -1151,7 +1158,7 @@ void InputFiles::waitForInputFiles()
 			int len = strlen(path_buf);
 			if (path_buf[len-1] == '\n')
 				path_buf[len-1] = 0;
-			LDOrderedMap<const char *, const Options::FileInfo*, strcompclass>::iterator it = fileMap.find(path_buf);
+			std::map<const char *, const Options::FileInfo*, strcompclass>::iterator it = fileMap.find(path_buf);
 			if (it == fileMap.end())
 				throwf("pipelined linking error - not in file list: %s\n", path_buf);
 			Options::FileInfo* inputInfo = (Options::FileInfo*)it->second;
@@ -1318,75 +1325,6 @@ void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal
 	}
 }
 
-
-void InputFiles::preParseLibraries() const {
-	std::string line;
-	std::ifstream infile("/tmp/cache-o");
-	LDSet<std::string> currentSet;
-	LDMap<std::string, LDSet<std::string>> map;
-	std::string currentLib;
-	std::getline(infile, currentLib);
-	while (std::getline(infile, line)) {
-		if (line[0] == '\t') {
-			line.erase(0, 1);
-			currentSet.insert(line);
-		} else {
-			map[currentLib] = currentSet;
-			currentLib = line;
-			currentSet = LDSet<std::string>();
-		}
-	}
-	map[currentLib] = currentSet;
-	auto queue = [[NSOperationQueue alloc] init];
-	queue.qualityOfService = NSQualityOfServiceUserInteractive;
-	// initialize info for parsing input files on worker threads
-	unsigned int ncpus;
-	int mib[2];
-	size_t len = sizeof(ncpus);
-	mib[0] = CTL_HW;
-	mib[1] = HW_NCPU;
-	auto res = sysctl(mib, 2, &ncpus, &len, NULL, 0);
-	if (res != 0) {
-		ncpus = 1;
-	}
-	queue.maxConcurrentOperationCount = ncpus;
-
-    for (std::vector<LibraryInfo>::const_iterator it=_searchLibraries.begin(); it != _searchLibraries.end(); ++it) {
-		auto lib = *it;
-		if (lib.isDylib()) {
-			auto dylib = lib.dylib();
-			auto it = map.find(dylib->path());
-			if (it == map.end()) {
-				continue;
-			}
-			//dylib->insertFilesToLoad();
-		} else {
-			auto archiveFile = lib.archive();
-			auto it = map.find(archiveFile->path());
-			if (it == map.end()) {
-				continue;
-			}
-			auto members = archiveFile->membersToParse(it->second);
-			for (auto member : members) {
-				[queue addOperationWithBlock:^{
-    				archiveFile->parseMember(member);
-				}];
-			}
-		}
-	}
-	[queue waitUntilAllOperationsAreFinished];
-}
-
-void InputFiles::dumpMembersParsed(std::ofstream &stream) const {
-    for (std::vector<LibraryInfo>::const_iterator it=_searchLibraries.begin(); it != _searchLibraries.end(); ++it) {
-		auto lib = *it;
-		if (lib.isDylib()) {
-		} else {
-			auto archive = lib.archive();
-			archive->dumpMembersParsed(stream);
-		}
-	}
-}
 
 bool InputFiles::searchLibraries(const char* name, bool searchDylibs, bool searchArchives, bool dataSymbolOnly, ld::File::AtomHandler& handler) const
 {

@@ -162,7 +162,7 @@ public:
         // The use pattern for FileInfo is to create one on the stack in a leaf function and return
         // it to the calling frame by copy. Therefore the copy constructor steals the path string from
         // the source, which dies with the stack frame.
-        FileInfo(FileInfo const &other) : path(other.path), modTime(other.modTime), options(other.options), ordinal(other.ordinal), fromFileList(other.fromFileList), isInlined(other.isInlined), inputFileSlot(-1), readyToParse(false) { ((FileInfo&)other).path = NULL; };
+        FileInfo(FileInfo const &other) : path(other.path), modTime(other.modTime), options(other.options), ordinal(other.ordinal), fromFileList(other.fromFileList), isInlined(other.isInlined), inputFileSlot(-1) { ((FileInfo&)other).path = NULL; };
 
 		FileInfo &operator=(FileInfo other) {
 			std::swap(path, other.path);
@@ -177,7 +177,7 @@ public:
 		}
 
         // Create an empty FileInfo. The path can be set implicitly by checkFileExists().
-        FileInfo() : path(NULL), modTime(-1), options(), fromFileList(false), isInlined(false), readyToParse(false) {};
+        FileInfo() : path(NULL), modTime(-1), options(), fromFileList(false), isInlined(false) {};
         
         // Create a FileInfo for a specific path, but does not stat the file.
         FileInfo(const char *_path) : path(strdup(_path)), modTime(-1), options(), fromFileList(false), isInlined(false) {};
@@ -405,9 +405,7 @@ public:
 	const std::vector<const char*>&	astFilePaths() const{ return fASTFilePaths; }
 	bool						makeCompressedDyldInfo() const { return fMakeCompressedDyldInfo; }
 	bool						makeThreadedStartsSection() const { return fMakeThreadedStartsSection; }
-	//bool						hasExportedSymbolOrder();
-	bool hasExportedSymbolOrder() const;
-	//bool shouldSortExports() const;
+	bool						hasExportedSymbolOrder();
 	bool						exportedSymbolOrder(const char* sym, unsigned int* order) const;
 	bool						orderData() { return fOrderData; }
 	bool						errorOnOtherArchFiles() const { return fErrorOnOtherArchFiles; }
@@ -538,7 +536,7 @@ public:
 	static uint32_t				parseVersionNumber32(const char*);
 
 private:
-	typedef LDMap<const char*, unsigned int, ld::CStringHash, ld::CStringEquals> NameToOrder;
+	typedef std::unordered_map<const char*, unsigned int, ld::CStringHash, ld::CStringEquals> NameToOrder;
 	typedef std::unordered_set<const char*, ld::CStringHash, ld::CStringEquals>  NameSet;
 	enum ExportMode { kExportDefault, kExportSome, kDontExportSome };
 	enum LibrarySearchMode { kSearchDylibAndArchiveInEachDir, kSearchAllDirsForDylibsThenAllDirsForArchives };

@@ -45,6 +45,8 @@
 
 /* Begin PBXBuildFile section */
 		4C7D5B8723D8F337006E515E /* libhash2.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 4C7D5B8623D8F336006E515E /* libhash2.a */; };
+		4C860FFB23F056A400359B8A /* InputFiles.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C860FFA23F056A400359B8A /* InputFiles.cpp */; };
+		4C860FFD23F056B400359B8A /* archive_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4C860FFC23F056B400359B8A /* archive_file.cpp */; };
 		83046A851C8FF2F700024A7E /* objcimageinfo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 83046A841C8FF2D000024A7E /* objcimageinfo.cpp */; };
 		B028FCF21A9E7C3F00E3584B /* bitcode_bundle.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B028FCF11A9E7C3F00E3584B /* bitcode_bundle.cpp */; };
 		B3B672421406D42800A376BB /* Snapshot.cpp in Sources */ = {isa = PBXBuildFile; fileRef = B3B672411406D42800A376BB /* Snapshot.cpp */; };
@@ -64,12 +66,10 @@
 		F9AA44DC1294885F00CB8390 /* branch_shim.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA44DA1294885F00CB8390 /* branch_shim.cpp */; };
 		F9AA65111051BD2B003E3539 /* stubs.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65101051BD2B003E3539 /* stubs.cpp */; };
 		F9AA65891051E750003E3539 /* macho_relocatable_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65871051E750003E3539 /* macho_relocatable_file.cpp */; };
-		F9AA65DD1051EC4A003E3539 /* archive_file.mm in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65D71051EC4A003E3539 /* archive_file.mm */; };
 		F9AA65DE1051EC4A003E3539 /* lto_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65D91051EC4A003E3539 /* lto_file.cpp */; };
 		F9AA65DF1051EC4A003E3539 /* macho_dylib_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65DB1051EC4A003E3539 /* macho_dylib_file.cpp */; };
 		F9AA6786105700C2003E3539 /* opaque_section_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA6784105700C2003E3539 /* opaque_section_file.cpp */; };
 		F9AA67B610570C41003E3539 /* dtrace_dof.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA67B510570C41003E3539 /* dtrace_dof.cpp */; };
-		F9AA687C10572E27003E3539 /* InputFiles.mm in Sources */ = {isa = PBXBuildFile; fileRef = F9AA687A10572E27003E3539 /* InputFiles.mm */; };
 		F9AA69B610583C0C003E3539 /* SymbolTable.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA69B410583C0C003E3539 /* SymbolTable.cpp */; };
 		F9AA69C110583E19003E3539 /* Resolver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA69BF10583E19003E3539 /* Resolver.cpp */; };
 		F9AA6FF910618CD2003E3539 /* macho_relocatable_file.cpp in Sources */ = {isa = PBXBuildFile; fileRef = F9AA65871051E750003E3539 /* macho_relocatable_file.cpp */; };
@@ -268,6 +268,8 @@
 /* Begin PBXFileReference section */
 		4C7D5B8323D8D46B006E515E /* hash.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hash.h; path = "../../examples/abseil-cpp/absl/hash/hash.h"; sourceTree = "<group>"; };
 		4C7D5B8623D8F336006E515E /* libhash2.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libhash2.a; path = ../../examples/build/libhash2.a; sourceTree = "<group>"; };
+		4C860FFA23F056A400359B8A /* InputFiles.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = InputFiles.cpp; path = src/ld/InputFiles.cpp; sourceTree = "<group>"; };
+		4C860FFC23F056B400359B8A /* archive_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = archive_file.cpp; sourceTree = "<group>"; };
 		4CF05E8E23EB005B009C0C95 /* libsystem_malloc.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libsystem_malloc.tbd; path = usr/lib/system/libsystem_malloc.tbd; sourceTree = SDKROOT; };
 		4CF05E9023EB0093009C0C95 /* libSystem.B.tbd */ = {isa = PBXFileReference; lastKnownFileType = "sourcecode.text-based-dylib-definition"; name = libSystem.B.tbd; path = usr/lib/libSystem.B.tbd; sourceTree = SDKROOT; };
 		4CF05E9323EB0151009C0C95 /* System.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = System.framework; path = Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/System.framework; sourceTree = DEVELOPER_DIR; };
@@ -324,7 +326,6 @@
 		F9AA65101051BD2B003E3539 /* stubs.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = stubs.cpp; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA65871051E750003E3539 /* macho_relocatable_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = macho_relocatable_file.cpp; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA65881051E750003E3539 /* macho_relocatable_file.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = macho_relocatable_file.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
-		F9AA65D71051EC4A003E3539 /* archive_file.mm */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = archive_file.mm; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA65D81051EC4A003E3539 /* archive_file.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = archive_file.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA65D91051EC4A003E3539 /* lto_file.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = lto_file.cpp; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA65DA1051EC4A003E3539 /* lto_file.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = lto_file.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
@@ -334,7 +335,6 @@
 		F9AA6785105700C2003E3539 /* opaque_section_file.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = opaque_section_file.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA67B410570C41003E3539 /* dtrace_dof.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; path = dtrace_dof.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA67B510570C41003E3539 /* dtrace_dof.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dtrace_dof.cpp; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
-		F9AA687A10572E27003E3539 /* InputFiles.mm */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = InputFiles.mm; path = src/ld/InputFiles.mm; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA687B10572E27003E3539 /* InputFiles.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; name = InputFiles.h; path = src/ld/InputFiles.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA69B410583C0C003E3539 /* SymbolTable.cpp */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SymbolTable.cpp; path = src/ld/SymbolTable.cpp; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
 		F9AA69B510583C0C003E3539 /* SymbolTable.h */ = {isa = PBXFileReference; fileEncoding = 4; indentWidth = 4; lastKnownFileType = sourcecode.c.h; name = SymbolTable.h; path = src/ld/SymbolTable.h; sourceTree = "<group>"; tabWidth = 4; usesTabs = 1; };
@@ -540,11 +540,11 @@
 				F91B7B0218987D5F0099486F /* libunwind */,
 				F9AA6784105700C2003E3539 /* opaque_section_file.cpp */,
 				F9AA6785105700C2003E3539 /* opaque_section_file.h */,
-				F9AA65D71051EC4A003E3539 /* archive_file.mm */,
 				F9AA65D81051EC4A003E3539 /* archive_file.h */,
 				F9AA65D91051EC4A003E3539 /* lto_file.cpp */,
 				F9AA65DA1051EC4A003E3539 /* lto_file.h */,
 				FA4843BE1B7279ED001C8025 /* generic_dylib_file.hpp */,
+				4C860FFC23F056B400359B8A /* archive_file.cpp */,
 				F9AA65DB1051EC4A003E3539 /* macho_dylib_file.cpp */,
 				F9AA65DC1051EC4A003E3539 /* macho_dylib_file.h */,
 				FA95D6121AB25CF400395811 /* textstub_dylib_file.cpp */,
@@ -584,8 +584,8 @@
 				F9AA69C010583E19003E3539 /* Resolver.h */,
 				F9AA69B410583C0C003E3539 /* SymbolTable.cpp */,
 				F9AA69B510583C0C003E3539 /* SymbolTable.h */,
-				F9AA687A10572E27003E3539 /* InputFiles.mm */,
 				4C7D5B8623D8F336006E515E /* libhash2.a */,
+				4C860FFA23F056A400359B8A /* InputFiles.cpp */,
 				4C7D5B8323D8D46B006E515E /* hash.h */,
 				F9AA687B10572E27003E3539 /* InputFiles.h */,
 				F9AA5FCC103F5CD1003E3539 /* ld.hpp */,
@@ -1017,16 +1017,15 @@
 			buildActionMask = 2147483647;
 			files = (
 				F9FC510A1BC893C400FEC3F8 /* code_dedup.cpp in Sources */,
+				4C860FFD23F056B400359B8A /* archive_file.cpp in Sources */,
 				C1E27B581F6B1B68003B8FA6 /* thread_starts.cpp in Sources */,
 				FA95D6141AB25CF400395811 /* textstub_dylib_file.cpp in Sources */,
 				F9C0D4BD06DD28D2001C7193 /* Options.cpp in Sources */,
 				F9023C4E06D5A272001BBF46 /* ld.cpp in Sources */,
 				F9AA65891051E750003E3539 /* macho_relocatable_file.cpp in Sources */,
-				F9AA65DD1051EC4A003E3539 /* archive_file.mm in Sources */,
 				F9AA65DE1051EC4A003E3539 /* lto_file.cpp in Sources */,
 				F9AA65DF1051EC4A003E3539 /* macho_dylib_file.cpp in Sources */,
 				F9EA7584097882F3008B4F1D /* debugline.c in Sources */,
-				F9AA687C10572E27003E3539 /* InputFiles.mm in Sources */,
 				F9AA69B610583C0C003E3539 /* SymbolTable.cpp in Sources */,
 				F9AA69C110583E19003E3539 /* Resolver.cpp in Sources */,
 				F989D30D106826020014B60C /* OutputFile.cpp in Sources */,
@@ -1040,6 +1039,7 @@
 				F984A38210BB4B0D009E9878 /* branch_island.cpp in Sources */,
 				F9A4DB9110F816FF00BD8423 /* objc.cpp in Sources */,
 				F9AE20FF1107D1440007ED5D /* dylibs.cpp in Sources */,
+				4C860FFB23F056A400359B8A /* InputFiles.cpp in Sources */,
 				F93CB248116E69EB003233B8 /* tlvp.cpp in Sources */,
 				F9AA44DC1294885F00CB8390 /* branch_shim.cpp in Sources */,
 				B3B672421406D42800A376BB /* Snapshot.cpp in Sources */,

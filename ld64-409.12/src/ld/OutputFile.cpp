@@ -42,7 +42,6 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
-#include <dispatch/dispatch.h>
 
 #include <string>
 #include <map>
@@ -55,7 +54,6 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include <semaphore.h>
 
 #include <CommonCrypto/CommonDigest.h>
 #include <AvailabilityMacros.h>
@@ -146,9 +144,7 @@ void OutputFile::dumpAtomsBySection(ld::Internal& state, bool printAtoms)
 	fprintf(stderr, "DYLIBS:\n");
 	for (std::vector<ld::dylib::File*>::iterator it=state.dylibs.begin(); it != state.dylibs.end(); ++it )
 		fprintf(stderr, "  %s\n", (*it)->installPath());
-}
-
-static sem_t semaphore;
+}	
 
 void OutputFile::write(ld::Internal& state)
 {
@@ -159,30 +155,18 @@ void OutputFile::write(ld::Internal& state)
 	this->setLoadCommandsPadding(state);
 	_fileSize = state.assignFileOffsets();
 	this->assignAtomAddresses(state);
-	// todo: correct use of dispatch group everywhere?
-	dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-	dispatch_group_t group = dispatch_group_create();
-	//dispatch_group_enter(group);
-	dispatch_group_async(group, queue, ^{
-		this->synthesizeDebugNotes(state);
-	});
-	//dispatch_group_enter(group);
-	dispatch_group_async(group, queue, ^{
-		this->buildSymbolTable(state);
-		this->updateLINKEDITAddresses(state);
-	});
-	dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-	//dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+	this->synthesizeDebugNotes(state);
+	this->buildSymbolTable(state);
 	this->generateLinkEditInfo(state);
 	if ( _options.sharedRegionEncodingV2() )
 		this->makeSplitSegInfoV2(state);
 	else
 		this->makeSplitSegInfo(state);
+	this->updateLINKEDITAddresses(state);
 	//this->dumpAtomsBySection(state, false);
 	this->writeOutputFile(state);
 	this->writeMapFile(state);
 	this->writeJSONEntry(state);
-	//});
 }
 
 bool OutputFile::findSegment(ld::Internal& state, uint64_t addr, uint64_t* start, uint64_t* end, uint32_t* index)
@@ -1240,11 +1224,11 @@ static bool withinOneMeg(uint64_t addr1, uint64_t addr2) {
 }
 #endif // SUPPORT_ARCH_arm64
 
-void OutputFile::setInfo(ld::Internal& state, const ld::Atom* atom, uint8_t* buffer, const LDOrderedMap<uint32_t, const Fixup*>& usedByHints, 
+void OutputFile::setInfo(ld::Internal& state, const ld::Atom* atom, uint8_t* buffer, const std::map<uint32_t, const Fixup*>& usedByHints, 
 						uint32_t offsetInAtom, uint32_t delta, InstructionInfo* info) 
 {
 	info->offsetInAtom = offsetInAtom + delta;
-	LDOrderedMap<uint32_t, const Fixup*>::const_iterator pos = usedByHints.find(info->offsetInAtom);
+	std::map<uint32_t, const Fixup*>::const_iterator pos = usedByHints.find(info->offsetInAtom);
 	if ( (pos != usedByHints.end()) && (pos->second != NULL) ) {
 		info->fixup = pos->second;
 		info->targetAddress = addressOf(state, info->fixup, &info->target);
@@ -1363,7 +1347,7 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 	bool is_blx;
 	bool is_b;
 	bool thumbTarget = false;
-	LDOrderedMap<uint32_t, const Fixup*> usedByHints;
+	std::map<uint32_t, const Fixup*> usedByHints;
 #if SUPPORT_ARCH_arm64e
 	Fixup::AuthData authData;
 #endif
@@ -2185,7 +2169,7 @@ void OutputFile::applyFixUps(ld::Internal& state, uint64_t mhAddress, const ld::
 					break;
 				default:
 					if ( fit->firstInCluster() ) {
-						LDOrderedMap<uint32_t, const Fixup*>::iterator pos = usedByHints.find(fit->offsetInAtom);
+						std::map<uint32_t, const Fixup*>::iterator pos = usedByHints.find(fit->offsetInAtom);
 						if ( pos != usedByHints.end() ) {
 							assert(pos->second == NULL && "two fixups in same hint location");
 							pos->second = fit;
@@ -2680,44 +2664,19 @@ bool OutputFile::hasZeroForFileOffset(const ld::Section* sect)
 	return false;
 }
 
-void OutputFile::updatePreviousLoopValues(ld::Internal& state, std::vector<ld::Internal::FinalSection*>::iterator& sit, uint64_t *fileOffsetOfEndOfLastAtom, bool *lastAtomUsesNoOps) {
-	for (auto prevIter = std::reverse_iterator(sit); prevIter != state.sections.rend(); ++prevIter) {
-		ld::Internal::FinalSection* prevSect = *prevIter;
-		if ( takesNoDiskSpace(prevSect)) {
-			continue;
-		}
-		for (auto prevAtomIter = prevSect->atoms.rbegin(); prevAtomIter != prevSect->atoms.rend(); ++prevAtomIter) {
-			auto atom = *prevAtomIter;
-			if (atom->definition() == ld::Atom::definitionProxy) {
-				continue;
-			}
-			*lastAtomUsesNoOps = (prevSect->type() == ld::Section::typeCode);
-			auto fileOffset = atom->finalAddress() - prevSect->address + prevSect->fileOffset;
-			*fileOffsetOfEndOfLastAtom = fileOffset+atom->size();
-			return;
-		}
-	}
-}
-
 void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 {
 	// have each atom write itself
+	uint64_t fileOffsetOfEndOfLastAtom = 0;
 	uint64_t mhAddress = 0;
+	bool lastAtomUsesNoOps = false;
 	for (std::vector<ld::Internal::FinalSection*>::iterator sit = state.sections.begin(); sit != state.sections.end(); ++sit) {
 		ld::Internal::FinalSection* sect = *sit;
 		if ( sect->type() == ld::Section::typeMachHeader )
 			mhAddress = sect->address;
-	}
-	//auto group = dispatch_group_create();
-	auto queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-	dispatch_apply(state.sections.size(), queue, ^(size_t dispatchIdx) {
-		auto sit = state.sections.begin() + dispatchIdx;
-		bool lastAtomUsesNoOps = false;
-		uint64_t fileOffsetOfEndOfLastAtom = 0;
-		ld::Internal::FinalSection* sect = *sit;
 		if ( takesNoDiskSpace(sect) )
-			return;
-		updatePreviousLoopValues(state, sit, &fileOffsetOfEndOfLastAtom, &lastAtomUsesNoOps);
+			continue;
+		const bool sectionUsesNops = (sect->type() == ld::Section::typeCode);
 		//fprintf(stderr, "file offset=0x%08llX, section %s\n", sect->fileOffset, sect->sectionName());
 		std::vector<const ld::Atom*>& atoms = sect->atoms;
 		bool lastAtomWasThumb = false;
@@ -2736,6 +2695,7 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 				// apply fix ups
 				this->applyFixUps(state, mhAddress, atom, &wholeBuffer[fileOffset]);
 				fileOffsetOfEndOfLastAtom = fileOffset+atom->size();
+				lastAtomUsesNoOps = sectionUsesNops;
 				lastAtomWasThumb = atom->isThumb();
 			}
 			catch (const char* msg) {
@@ -2745,7 +2705,7 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 					throwf("%s in '%s'", msg, atom->name());
 			}
 		}
-	});
+	}
 	
 	if ( _options.verboseOptimizationHints() ) {
 		//fprintf(stderr, "ADRP optimized away:   %d\n", sAdrpNA);
@@ -3301,13 +3261,13 @@ struct AtomByNameSorter
 class NotInSet
 {
 public:
-	NotInSet(const LDOrderedSet<const ld::Atom*>& theSet) : _set(theSet)  {}
+	NotInSet(const std::set<const ld::Atom*>& theSet) : _set(theSet)  {}
 
 	bool operator()(const ld::Atom* atom) const {
 		return ( _set.count(atom) == 0 );
 	}
 private:
-	const LDOrderedSet<const ld::Atom*>&  _set;
+	const std::set<const ld::Atom*>&  _set;
 };
 
 
@@ -3466,7 +3426,7 @@ void OutputFile::buildSymbolTable(ld::Internal& state)
 	// <rdar://problem/6978069> ld adds undefined symbol from .exp file to binary
 	if ( (_options.outputKind() == Options::kKextBundle) && _options.hasExportRestrictList() ) {
 		// search for referenced undefines
-		LDOrderedSet<const ld::Atom*> referencedProxyAtoms;
+		std::set<const ld::Atom*> referencedProxyAtoms;
 		for (std::vector<ld::Internal::FinalSection*>::iterator sit=state.sections.begin(); sit != state.sections.end(); ++sit) {
 			ld::Internal::FinalSection* sect = *sit;
 			for (std::vector<const ld::Atom*>::iterator ait=sect->atoms.begin();  ait != sect->atoms.end(); ++ait) {
@@ -3489,17 +3449,12 @@ void OutputFile::buildSymbolTable(ld::Internal& state)
 		_importedAtoms.erase(std::remove_if(_importedAtoms.begin(), _importedAtoms.end(), NotInSet(referencedProxyAtoms)), _importedAtoms.end());			
 	}
 	
-	auto query = std::find_if(_exportedAtoms.begin(), _exportedAtoms.end(), [] (const Atom *& s) { return s->name()[0] <= '$'; });
-	if (query == _exportedAtoms.end()) {
-		return;
-	}
-
 	// sort by name
 	std::sort(_exportedAtoms.begin(), _exportedAtoms.end(), AtomByNameSorter());
 	std::sort(_importedAtoms.begin(), _importedAtoms.end(), AtomByNameSorter());
 
-	LDOrderedMap<std::string, std::vector<std::string>> addedSymbols;
-	LDOrderedMap<std::string, std::vector<std::string>> hiddenSymbols;
+	std::map<std::string, std::vector<std::string>> addedSymbols;
+	std::map<std::string, std::vector<std::string>> hiddenSymbols;
 	for (const auto *atom : _exportedAtoms) {
 		// The exported symbols have already been sorted. Early exit the loop
 		// once we see a symbol that is lexicographically past the special
@@ -3548,7 +3503,7 @@ void OutputFile::buildSymbolTable(ld::Internal& state)
 
 	for (const auto &it : hiddenSymbols) {
 		for (const auto &symbol :  it.second)
-			;//warning("linker symbol '%s' hides a non-existent symbol '%s'", symbol.c_str(), it.first.c_str());
+			warning("linker symbol '%s' hides a non-existent symbol '%s'", symbol.c_str(), it.first.c_str());
 	}
 }
 
@@ -3960,7 +3915,7 @@ const ld::dylib::File* OutputFile::dylibByOrdinal(unsigned int ordinal)
 
 bool OutputFile::hasOrdinalForInstallPath(const char* path, int* ordinal)
 {
-	for (LDOrderedMap<const ld::dylib::File*, int>::const_iterator it = _dylibToOrdinal.begin(); it != _dylibToOrdinal.end(); ++it) {
+	for (std::map<const ld::dylib::File*, int>::const_iterator it = _dylibToOrdinal.begin(); it != _dylibToOrdinal.end(); ++it) {
 		const char* installPath = it->first->installPath();
 		if ( (installPath != NULL) && (strcmp(path, installPath) == 0) ) {
 			*ordinal = it->second;
@@ -4035,7 +3990,7 @@ void OutputFile::buildDylibOrdinalMapping(ld::Internal& state)
 	}
 	_noReExportedDylibs = !hasReExports;
 	//fprintf(stderr, "dylibs:\n");
-	//for (LDOrderedMap<const ld::dylib::File*, int>::const_iterator it = _dylibToOrdinal.begin(); it != _dylibToOrdinal.end(); ++it) {
+	//for (std::map<const ld::dylib::File*, int>::const_iterator it = _dylibToOrdinal.begin(); it != _dylibToOrdinal.end(); ++it) {
 	//	fprintf(stderr, " %p ord=%u, install_name=%s\n",it->first, it->second, it->first->installPath());
 	//}
 }
@@ -4063,7 +4018,7 @@ int OutputFile::compressedOrdinalForAtom(const ld::Atom* target)
 	// regular ordinal
 	const ld::dylib::File* dylib = dynamic_cast<const ld::dylib::File*>(target->file());
 	if ( dylib != NULL ) {
-		LDOrderedMap<const ld::dylib::File*, int>::iterator pos = _dylibToOrdinal.find(dylib);
+		std::map<const ld::dylib::File*, int>::iterator pos = _dylibToOrdinal.find(dylib);
 		if ( pos != _dylibToOrdinal.end() )
 			return pos->second;
 		assert(0 && "dylib not assigned ordinal");
@@ -5422,9 +5377,9 @@ void OutputFile::writeMapFile(ld::Internal& state)
 			//		uuid[8], uuid[9], uuid[10], uuid[11], uuid[12], uuid[13], uuid[14], uuid[15]);
 			//}
 			// write table of object files
-			LDOrderedMap<const ld::File*, ld::File::Ordinal> readerToOrdinal;
-			LDOrderedMap<ld::File::Ordinal, const ld::File*> ordinalToReader;
-			LDOrderedMap<const ld::File*, uint32_t> readerToFileOrdinal;
+			std::map<const ld::File*, ld::File::Ordinal> readerToOrdinal;
+			std::map<ld::File::Ordinal, const ld::File*> ordinalToReader;
+			std::map<const ld::File*, uint32_t> readerToFileOrdinal;
 			for (std::vector<ld::Internal::FinalSection*>::iterator sit = state.sections.begin(); sit != state.sections.end(); ++sit) {
 				ld::Internal::FinalSection* sect = *sit;
 				if ( sect->isSectionHidden() ) 
@@ -5435,7 +5390,7 @@ void OutputFile::writeMapFile(ld::Internal& state)
 					if ( reader == NULL )
 						continue;
 					ld::File::Ordinal readerOrdinal = reader->ordinal();
-					LDOrderedMap<const ld::File*, ld::File::Ordinal>::iterator pos = readerToOrdinal.find(reader);
+					std::map<const ld::File*, ld::File::Ordinal>::iterator pos = readerToOrdinal.find(reader);
 					if ( pos == readerToOrdinal.end() ) {
 						readerToOrdinal[reader] = readerOrdinal;
 						ordinalToReader[readerOrdinal] = reader;
@@ -5447,7 +5402,7 @@ void OutputFile::writeMapFile(ld::Internal& state)
 				if ( reader == NULL )
 					continue;
 				ld::File::Ordinal readerOrdinal = reader->ordinal();
-				LDOrderedMap<const ld::File*, ld::File::Ordinal>::iterator pos = readerToOrdinal.find(reader);
+				std::map<const ld::File*, ld::File::Ordinal>::iterator pos = readerToOrdinal.find(reader);
 				if ( pos == readerToOrdinal.end() ) {
 					readerToOrdinal[reader] = readerOrdinal;
 					ordinalToReader[readerOrdinal] = reader;
@@ -5456,7 +5411,7 @@ void OutputFile::writeMapFile(ld::Internal& state)
 			fprintf(mapFile, "# Object files:\n");
 			fprintf(mapFile, "[%3u] %s\n", 0, "linker synthesized");
 			uint32_t fileIndex = 1;
-			for(LDOrderedMap<ld::File::Ordinal, const ld::File*>::iterator it = ordinalToReader.begin(); it != ordinalToReader.end(); ++it) {
+			for(std::map<ld::File::Ordinal, const ld::File*>::iterator it = ordinalToReader.begin(); it != ordinalToReader.end(); ++it) {
 				fprintf(mapFile, "[%3u] %s\n", fileIndex, it->second->path());
 				readerToFileOrdinal[it->second] = fileIndex++;
 			}
@@ -5685,7 +5640,7 @@ void OutputFile::writeJSONEntry(ld::Internal& state)
 		_options.writeToTraceFile(jsonEntry.c_str(), jsonEntry.size());
 	}
 }
-
+	
 // used to sort atoms with debug notes
 class DebugNoteSorter
 {
@@ -5699,18 +5654,12 @@ public:
 			return (leftFileOrdinal < rightFileOrdinal);
 
 		// then sort by atom objectAddress
-		return left->finalAddress() < right->finalAddress();
+		uint64_t leftAddr  = left->finalAddress();
+		uint64_t rightAddr = right->finalAddress();
+		return leftAddr < rightAddr;
 	}
 };
 
-class DebugNoteSorter2
-{
-public:
-	bool operator()(const ld::Atom* left, const ld::Atom* right) const
-	{
-		return left->finalAddress() < right->finalAddress();
-	}
-};
 
 const char* OutputFile::assureFullPath(const char* path)
 {
@@ -5742,8 +5691,8 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 		return;
 	// make a vector of atoms that come from files compiled with dwarf debug info
 	std::vector<const ld::Atom*> atomsNeedingDebugNotes;
-	LDOrderedSet<const ld::Atom*> atomsWithStabs;
-	LDOrderedSet<const ld::relocatable::File*> filesSeenWithStabs;
+	std::set<const ld::Atom*> atomsWithStabs;
+	std::set<const ld::relocatable::File*> filesSeenWithStabs;
 	atomsNeedingDebugNotes.reserve(1024);
 	const ld::relocatable::File* objFile = NULL;
 	bool objFileHasDwarf = false;
@@ -5801,38 +5750,12 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 			}
 		}
 	}
-
+	
 	// sort by file ordinal then atom ordinal
-	uint16_t partitionMask = 0;
-	uint16_t maxMajorIndex = 0;
-	for (auto atom : atomsNeedingDebugNotes) {
-		auto ordinal = atom->file()->ordinal();
-		partitionMask |= ordinal.partition();
-		if (ordinal.majorIndex() > maxMajorIndex) {
-    		maxMajorIndex = ordinal.majorIndex();
-		}
-	}
-	if (partitionMask == 0 && maxMajorIndex > 1000) {
-    	std::sort(atomsNeedingDebugNotes.begin(), atomsNeedingDebugNotes.end(), DebugNoteSorter());
-	} else {
-		std::vector<const ld::Atom *> buckets[maxMajorIndex + 1];
-    	for (auto atom : atomsNeedingDebugNotes) {
-			auto idx = atom->file()->ordinal().majorIndex();
-			buckets[idx].push_back(atom);
-		}
-		std::vector<const ld::Atom *> finalSorted;
-		finalSorted.reserve(atomsNeedingDebugNotes.size());
-		for (size_t i = 0; i <= maxMajorIndex; i++) {
-			auto bucket = buckets[i];
-			std::sort(bucket.begin(), bucket.end(), DebugNoteSorter2());
-			finalSorted.insert(finalSorted.end(), bucket.begin(), bucket.end());
-		}
-		atomsNeedingDebugNotes = finalSorted;
-	}
-	//printf("234 %hu\n", maxMajorIndex);
+	std::sort(atomsNeedingDebugNotes.begin(), atomsNeedingDebugNotes.end(), DebugNoteSorter());
 
 	// <rdar://problem/17689030> Add -add_ast_path option to linker which add N_AST stab entry to output
-	LDOrderedSet<std::string> seenAstPaths;
+	std::set<std::string> seenAstPaths;
 	const std::vector<const char*>&	astPaths = _options.astFilePaths();
 	for (std::vector<const char*>::const_iterator it=astPaths.begin(); it != astPaths.end(); it++) {
 		const char* path = *it;
@@ -5858,7 +5781,7 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 	const char* filename = NULL;
 	bool wroteStartSO = false;
 	state.stabs.reserve(atomsNeedingDebugNotes.size()*4);
-	LDSet<LDString, CLDStringHash, CLDStringEquals>  seenFiles;
+	std::unordered_set<const char*, CStringHash, CStringEquals>  seenFiles;
 	for (std::vector<const ld::Atom*>::iterator it=atomsNeedingDebugNotes.begin(); it != atomsNeedingDebugNotes.end(); it++) {
 		const ld::Atom* atom = *it;
 		const ld::File* atomFile = atom->file();
@@ -5930,11 +5853,11 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 				state.stabs.push_back(objStab);
 				wroteStartSO = true;
 				// add the source file path to seenFiles so it does not show up in SOLs
-				seenFiles.insert(LDStringCreate(newFilename));
+				seenFiles.insert(newFilename);
 				char* fullFilePath;
 				asprintf(&fullFilePath, "%s%s", newDirPath, newFilename);
 				// add both leaf path and full path
-				seenFiles.insert(LDStringCreate(fullFilePath));
+				seenFiles.insert(fullFilePath);
 
 				// <rdar://problem/34121435> Add linker support for propagating N_AST debug notes from .o files to linked image
 				if ( const std::vector<relocatable::File::AstTimeAndPath>* asts = atomObjFile->astFiles() ) {
@@ -5979,9 +5902,8 @@ void OutputFile::synthesizeDebugNotes(ld::Internal& state)
 				const char* curFile = NULL;
 				for (ld::Atom::LineInfo::iterator lit = atom->beginLineInfo(); lit != atom->endLineInfo(); ++lit) {
 					if ( lit->fileName != curFile ) {
-                		auto ldFileName = LDStringCreate(lit->fileName);
-						if ( seenFiles.count(ldFileName) == 0 ) {
-							seenFiles.insert(ldFileName);
+						if ( seenFiles.count(lit->fileName) == 0 ) {
+							seenFiles.insert(lit->fileName);
 							ld::relocatable::File::Stab sol;
 							sol.atom		= 0;
 							sol.type		= N_SOL;
