@@ -42,7 +42,6 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
-#include <dispatch/dispatch.h>
 
 #include <string>
 #include <map>
@@ -55,7 +54,6 @@
 #include <utility>
 #include <iostream>
 #include <fstream>
-#include <semaphore.h>
 
 #include <CommonCrypto/CommonDigest.h>
 #include <AvailabilityMacros.h>
@@ -146,9 +144,7 @@ void OutputFile::dumpAtomsBySection(ld::Internal& state, bool printAtoms)
 	fprintf(stderr, "DYLIBS:\n");
 	for (std::vector<ld::dylib::File*>::iterator it=state.dylibs.begin(); it != state.dylibs.end(); ++it )
 		fprintf(stderr, "  %s\n", (*it)->installPath());
-}
-
-static sem_t semaphore;
+}	
 
 void OutputFile::write(ld::Internal& state)
 {
@@ -159,32 +155,18 @@ void OutputFile::write(ld::Internal& state)
 	this->setLoadCommandsPadding(state);
 	_fileSize = state.assignFileOffsets();
 	this->assignAtomAddresses(state);
-	// todo: correct use of dispatch group everywhere?
-	dispatch_queue_t queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-	dispatch_group_t group = dispatch_group_create();
-	//dispatch_group_enter(group);
-	dispatch_group_async(group, queue, ^{
-		this->synthesizeDebugNotes(state);
-		printf("done3\n");
-	});
-	//dispatch_group_enter(group);
-	dispatch_group_async(group, queue, ^{
-		this->buildSymbolTable(state);
-		printf("done\n");
-	});
-	dispatch_group_wait(group, DISPATCH_TIME_FOREVER);
-	this->updateLINKEDITAddresses(state);
-	//dispatch_group_notify(group, dispatch_get_main_queue(), ^{
+	this->synthesizeDebugNotes(state);
+	this->buildSymbolTable(state);
 	this->generateLinkEditInfo(state);
 	if ( _options.sharedRegionEncodingV2() )
 		this->makeSplitSegInfoV2(state);
 	else
 		this->makeSplitSegInfo(state);
+	this->updateLINKEDITAddresses(state);
 	//this->dumpAtomsBySection(state, false);
 	this->writeOutputFile(state);
 	this->writeMapFile(state);
 	this->writeJSONEntry(state);
-	//});
 }
 
 bool OutputFile::findSegment(ld::Internal& state, uint64_t addr, uint64_t* start, uint64_t* end, uint32_t* index)
@@ -2682,44 +2664,19 @@ bool OutputFile::hasZeroForFileOffset(const ld::Section* sect)
 	return false;
 }
 
-void OutputFile::updatePreviousLoopValues(ld::Internal& state, std::vector<ld::Internal::FinalSection*>::iterator& sit, uint64_t *fileOffsetOfEndOfLastAtom, bool *lastAtomUsesNoOps) {
-	for (auto prevIter = std::reverse_iterator(sit); prevIter != state.sections.rend(); ++prevIter) {
-		ld::Internal::FinalSection* prevSect = *prevIter;
-		if ( takesNoDiskSpace(prevSect)) {
-			continue;
-		}
-		for (auto prevAtomIter = prevSect->atoms.rbegin(); prevAtomIter != prevSect->atoms.rend(); ++prevAtomIter) {
-			auto atom = *prevAtomIter;
-			if (atom->definition() == ld::Atom::definitionProxy) {
-				continue;
-			}
-			*lastAtomUsesNoOps = (prevSect->type() == ld::Section::typeCode);
-			auto fileOffset = atom->finalAddress() - prevSect->address + prevSect->fileOffset;
-			*fileOffsetOfEndOfLastAtom = fileOffset+atom->size();
-			return;
-		}
-	}
-}
-
 void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 {
 	// have each atom write itself
+	uint64_t fileOffsetOfEndOfLastAtom = 0;
 	uint64_t mhAddress = 0;
+	bool lastAtomUsesNoOps = false;
 	for (std::vector<ld::Internal::FinalSection*>::iterator sit = state.sections.begin(); sit != state.sections.end(); ++sit) {
 		ld::Internal::FinalSection* sect = *sit;
 		if ( sect->type() == ld::Section::typeMachHeader )
 			mhAddress = sect->address;
-	}
-	//auto group = dispatch_group_create();
-	auto queue = dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0);
-	dispatch_apply(state.sections.size(), queue, ^(size_t dispatchIdx) {
-		auto sit = state.sections.begin() + dispatchIdx;
-		bool lastAtomUsesNoOps = false;
-		uint64_t fileOffsetOfEndOfLastAtom = 0;
-		ld::Internal::FinalSection* sect = *sit;
 		if ( takesNoDiskSpace(sect) )
-			return;
-		updatePreviousLoopValues(state, sit, &fileOffsetOfEndOfLastAtom, &lastAtomUsesNoOps);
+			continue;
+		const bool sectionUsesNops = (sect->type() == ld::Section::typeCode);
 		//fprintf(stderr, "file offset=0x%08llX, section %s\n", sect->fileOffset, sect->sectionName());
 		std::vector<const ld::Atom*>& atoms = sect->atoms;
 		bool lastAtomWasThumb = false;
@@ -2738,6 +2695,7 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 				// apply fix ups
 				this->applyFixUps(state, mhAddress, atom, &wholeBuffer[fileOffset]);
 				fileOffsetOfEndOfLastAtom = fileOffset+atom->size();
+				lastAtomUsesNoOps = sectionUsesNops;
 				lastAtomWasThumb = atom->isThumb();
 			}
 			catch (const char* msg) {
@@ -2747,7 +2705,7 @@ void OutputFile::writeAtoms(ld::Internal& state, uint8_t* wholeBuffer)
 					throwf("%s in '%s'", msg, atom->name());
 			}
 		}
-	});
+	}
 	
 	if ( _options.verboseOptimizationHints() ) {
 		//fprintf(stderr, "ADRP optimized away:   %d\n", sAdrpNA);
@@ -5682,8 +5640,6 @@ void OutputFile::writeJSONEntry(ld::Internal& state)
 		_options.writeToTraceFile(jsonEntry.c_str(), jsonEntry.size());
 	}
 }
-
-//static size_t zzcount = 0;
 	
 // used to sort atoms with debug notes
 class DebugNoteSorter
@@ -5694,11 +5650,6 @@ public:
 		// first sort by reader
 		ld::File::Ordinal leftFileOrdinal  = left->file()->ordinal();
 		ld::File::Ordinal rightFileOrdinal = right->file()->ordinal();
-		/*zzcount++;
-		printf("%llu, %llu, %llu, %llu\n", left->file()->ordinal().getNumber() >> 48, left->file()->ordinal().getNumber() >> 32 & 0xF, left->file()->ordinal().getNumber() >> 16 & 0xF, left->file()->ordinal().getNumber() & 0xF);
-		if (zzcount > 3000) {
-			abort();
-		}*/
 		if ( leftFileOrdinal!= rightFileOrdinal)
 			return (leftFileOrdinal < rightFileOrdinal);
 
