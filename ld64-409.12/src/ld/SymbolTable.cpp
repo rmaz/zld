@@ -636,7 +636,7 @@ SymbolTable::IndirectBindingSlot SymbolTable::findSlotForName(const char* name, 
 	} else {
 		nfoundz++;
 	}*/
-	if (foundzMap.contains(name)) {
+	if (foundzMap.count(name) > 0) {
     	foundzMap[name]++;
 	} else {
 		foundzMap[name] = 1;
