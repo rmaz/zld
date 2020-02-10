@@ -83,7 +83,7 @@ struct Node
 	uint32_t			fTrieOffset;
 	
 	void addSymbol(const char* fullStr, uint64_t address, uint64_t flags, uint64_t other, const char* importName) {
-		const char* partialStr = &fullStr[fCummulativeStringLength];
+		const char* partialStr = &fullStr[strlen(fCummulativeString)];
 		for (std::vector<Edge>::iterator it = fChildren.begin(); it != fChildren.end(); ++it) {
 			Edge& e = *it;
 			size_t subStringLen = e.fSubStringLength;
@@ -103,30 +103,34 @@ struct Node
 				return;
 			}
 			else {
-				size_t i = 0;
-				while (e.fSubString[i] == partialStr[i] && i < subStringLen) {
-					i++;
+				unsigned long matching = 0;
+				for (; matching < subStringLen; matching++) {
+					if (e.fSubString[matching] != partialStr[matching]) {
+						break;
+					}
 				}
-				if (i == 0) {
-					continue;
+				if (matching == subStringLen) {
+					matching--;
 				}
-				// found a common substring, splice in new node
-				//  was A -> C,  now A -> B -> C
-				size_t length = e.fChild->fCummulativeStringLength + i - subStringLen;
-				char* bNodeCummStr = LDStrDup(e.fChild->fCummulativeString, length);
-				//node* aNode = this;
-				Node* bNode = new Node(bNodeCummStr);
-				Node* cNode = e.fChild;
-				char* abEdgeStr = LDStrDup(e.fSubString, i);
-				abEdgeStr[i] = '\0';
-				char* bcEdgeStr = LDStrDup(e.fSubString, e.fSubStringLength - i);
-				Edge& abEdge = e;
-				abEdge.setSubString(abEdgeStr);
-				abEdge.fChild = bNode;
-				Edge bcEdge(bcEdgeStr, cNode);
-				bNode->fChildren.push_back(bcEdge);
-				bNode->addSymbol(fullStr, address, flags, other, importName);
-				return;
+				if (matching > 0) {
+					// found a common substring, splice in new node
+					//  was A -> C,  now A -> B -> C
+					char* bNodeCummStr = strdup(e.fChild->fCummulativeString);
+					bNodeCummStr[strlen(bNodeCummStr)+matching-subStringLen] = '\0';
+					//node* aNode = this;
+					Node* bNode = new Node(bNodeCummStr);
+					Node* cNode = e.fChild;
+					char* abEdgeStr = strdup(e.fSubString);
+					abEdgeStr[matching] = '\0';
+					char* bcEdgeStr = strdup(&e.fSubString[matching]);
+					Edge& abEdge = e;
+					abEdge.setSubString(abEdgeStr);
+					abEdge.fChild = bNode;
+					Edge bcEdge(bcEdgeStr, cNode);
+					bNode->fChildren.push_back(bcEdge);
+					bNode->addSymbol(fullStr, address, flags, other, importName);
+					return;
+				}
 			}
 		}
 		if ( flags & EXPORT_SYMBOL_FLAGS_REEXPORT ) {
@@ -159,14 +163,14 @@ struct Node
 		const char* partialStr = &name[fCummulativeStringLength];
 		for (std::vector<Edge>::iterator it = fChildren.begin(); it != fChildren.end(); ++it) {
 			Edge& e = *it;
-			if (e.fSubString[1] == '\0') {
-				if (e.fSubString[0] == partialStr[0]) {
-    				e.fChild->addOrderedNodes(name, orderedNodes);
-    				return;
-				} else {
-					continue;
-				}
-			}
+           if (e.fSubStringLength == 1) {
+               if (e.fSubString[0] == partialStr[0]) {
+                   e.fChild->addOrderedNodes(name, orderedNodes);
+                   return;
+               } else {
+                   continue;
+               }
+           }
 			int subStringLen = strlen(e.fSubString);
 			if ( strncmp(e.fSubString, partialStr, subStringLen) == 0 ) {
 				// already have matching edge, go down that path
