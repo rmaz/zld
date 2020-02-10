@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Scheme
+   LastUpgradeVersion = "1120"
+   version = "1.3">
+   <BuildAction
+      parallelizeBuildables = "YES"
+      buildImplicitDependencies = "YES">
+      <BuildActionEntries>
+         <BuildActionEntry
+            buildForTesting = "YES"
+            buildForRunning = "YES"
+            buildForProfiling = "YES"
+            buildForArchiving = "YES"
+            buildForAnalyzing = "YES">
+            <BuildableReference
+               BuildableIdentifier = "primary"
+               BlueprintIdentifier = "F9023C3806D5A23E001BBF46"
+               BuildableName = "ld"
+               BlueprintName = "ld"
+               ReferencedContainer = "container:ld64.xcodeproj">
+            </BuildableReference>
+         </BuildActionEntry>
+      </BuildActionEntries>
+   </BuildAction>
+   <TestAction
+      buildConfiguration = "Debug"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <Testables>
+      </Testables>
+   </TestAction>
+   <LaunchAction
+      buildConfiguration = "Release"
+      selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
+      selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
+      enableASanStackUseAfterReturn = "YES"
+      launchStyle = "0"
+      useCustomWorkingDirectory = "YES"
+      customWorkingDirectory = "/Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/toolkit/library/build"
+      ignoresPersistentStateOnLaunch = "NO"
+      debugDocumentVersioning = "YES"
+      debugServiceExtension = "internal"
+      allowLocationSimulation = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F9023C3806D5A23E001BBF46"
+            BuildableName = "ld"
+            BlueprintName = "ld"
+            ReferencedContainer = "container:ld64.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+      <CommandLineArguments>
+         <CommandLineArgument
+            argument = "-no_uuid -dynamic -dylib -dylib_compatibility_version 1 -dylib_current_version 1 -arch x86_64 -dylib_install_name @executable_path/XUL -macosx_version_min 10.14.0 -single_module -syslibroot /Users/michael/projects/MacOSX-SDKs/MacOSX10.14.sdk -o XUL -L/opt/local/lib -filelist /Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/toolkit/library/build/XUL.list -syslibroot /Users/michael/projects/MacOSX-SDKs/MacOSX10.14.sdk -framework Cocoa -lobjc -framework AudioToolbox -framework ExceptionHandling -U _OBJC_CLASS_ -U _OBJC_CLASS_ -U _OBJC_METACLASS_ -U _OBJC_CLASS_ -U _OBJC_CLASS_ -lresolv -executable_path /Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/dist/bin ../../../security/nss/lib/crmf/crmf_crmf/libcrmf.a ../../../js/src/build/libjs_static.a /Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/x86_64-apple-darwin/release/libgkrust.a ../../../security/libnss3.dylib ../../../config/external/lgpllibs/liblgpllibs.dylib ../../../mozglue/build/libmozglue.dylib -framework IOSurface -framework IOKit -framework AudioToolbox -framework CoreMedia -framework VideoToolbox -framework Foundation -framework AVFoundation -framework CoreVideo -framework AppKit -framework OpenGL -framework LocalAuthentication -framework Security -lm -framework SystemConfiguration -framework CoreUI -framework CoreSymbolication -lcups -framework Foundation -framework CoreFoundation -framework CoreLocation -framework QuartzCore -framework Carbon -framework CoreAudio -framework CoreVideo -framework AudioToolbox -framework AudioUnit -framework AddressBook -framework OpenGL -framework Security -framework ServiceManagement -framework CoreServices -framework ApplicationServices -framework AppKit -weak_framework Metal -lc++ -lSystem /Users/michael/.mozbuild/clang/lib/clang/9.0.1/lib/darwin/libclang_rt.osx.a -F/System/Library/PrivateFrameworks -print_statistics"
+            isEnabled = "YES">
+         </CommandLineArgument>
+      </CommandLineArguments>
+      <EnvironmentVariables>
+         <EnvironmentVariable
+            key = "DYLD_INSERT_LIBRARIES"
+            value = "/Users/michael/projects/rpmalloc/build/ninja/macos/debug/x86-64/rpmalloc-32e30f9/librpmallocwrap.dylib"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "TSAN_OPTIONS"
+            value = "history_size=3"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+         <EnvironmentVariable
+            key = "DYLD_PRINT_INTERPOSING"
+            value = "1"
+            isEnabled = "NO">
+         </EnvironmentVariable>
+      </EnvironmentVariables>
+   </LaunchAction>
+   <ProfileAction
+      buildConfiguration = "Release"
+      shouldUseLaunchSchemeArgsEnv = "YES"
+      savedToolIdentifier = "Time Profiler"
+      useCustomWorkingDirectory = "YES"
+      customWorkingDirectory = "/Users/michael/projects/mozilla/mozilla-unified/obj-x86_64-apple-darwin18.5.0/toolkit/library/build"
+      debugDocumentVersioning = "YES">
+      <BuildableProductRunnable
+         runnableDebuggingMode = "0">
+         <BuildableReference
+            BuildableIdentifier = "primary"
+            BlueprintIdentifier = "F9023C3806D5A23E001BBF46"
+            BuildableName = "ld"
+            BlueprintName = "ld"
+            ReferencedContainer = "container:ld64.xcodeproj">
+         </BuildableReference>
+      </BuildableProductRunnable>
+   </ProfileAction>
+   <AnalyzeAction
+      buildConfiguration = "Debug">
+   </AnalyzeAction>
+   <ArchiveAction
+      buildConfiguration = "Release"
+      revealArchiveInOrganizer = "YES">
+   </ArchiveAction>
+</Scheme>
