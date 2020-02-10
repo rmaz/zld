@@ -573,7 +573,7 @@ void File<A>::insertMembersToParse(std::vector<void *> &members, LDSet<std::stri
 	for (auto offset : offsets) {
 		Entry *member = (Entry *)(&_archiveFileContent[offset]);
 		member->getName(name, sizeof(name));
-		if (set.contains(std::string(name))) {
+		if (set.count(std::string(name)) != 0) {
 			dispatch_group_async(group, queue, ^{
 				makeObjectFileForMember(member);
 			});
