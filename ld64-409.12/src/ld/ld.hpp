@@ -36,17 +36,12 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "configure.h"
-#include "absl/container/btree_map.h"
-#include "absl/container/btree_set.h"
-#include "absl/container/flat_hash_map.h"
-#include "absl/container/flat_hash_set.h"
-#include "absl/hash/hash.h"
-
-#define LDOrderedMap absl::btree_map
-#define LDMap absl::flat_hash_map
-#define LDSet absl::flat_hash_set
+#define LDOrderedMap std::map
+#define LDMap std::unordered_map
+#define LDSet std::unordered_set
 #define LDOrderedSet std::set
 
 struct CPointerHash {
