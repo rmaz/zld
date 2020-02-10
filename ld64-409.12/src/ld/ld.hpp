@@ -36,6 +36,7 @@
 #include <vector>
 #include <string>
 #include <unordered_set>
+#include <unordered_map>
 
 #include "configure.h"
 /*#include "absl/container/btree_map.h"
