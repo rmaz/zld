@@ -1387,7 +1387,7 @@ public:
 		bool							hasExternalRelocs;
 	};
 	
-	typedef LDMap<const ld::Atom*, FinalSection*>	AtomToSection;
+	typedef LDOrderedMap<const ld::Atom*, FinalSection*>	AtomToSection;
 
 	virtual uint64_t					assignFileOffsets() = 0;
 	virtual void						setSectionSizesAndAlignments() = 0;
