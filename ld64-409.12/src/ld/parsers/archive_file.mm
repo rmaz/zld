@@ -577,7 +577,7 @@ std::vector<void *> File<A>::membersToParse(LDSet<std::string> &set) const {
 	for (auto offset : offsets) {
 		Entry *member = (Entry *)(&_archiveFileContent[offset]);
 		member->getName(name, sizeof(name));
-		if (set.count(std::string(name)) == 0) {
+		if (set.count(std::string(name)) != 0) {
 			membersToParse.push_back(member);
 		}
 	}
