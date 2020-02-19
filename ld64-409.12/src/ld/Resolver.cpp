@@ -39,6 +39,8 @@
 #include <dlfcn.h>
 #include <mach-o/dyld.h>
 #include <mach-o/fat.h>
+#include <iostream>
+#include <fstream>
 
 #include <string>
 #include <map>
@@ -293,7 +295,7 @@ void Resolver::initializeState()
 		}
 	}
 #ifdef LD64_VERSION_NUM
-	uint32_t packedNum = Options::parseVersionNumber32(STRINGIFY(LD64_VERSION_NUM));
+	uint32_t packedNum = 0x01c20300;//Options::parseVersionNumber32(STRINGIFY(LD64_VERSION_NUM));
 	uint64_t combined = (uint64_t)TOOL_LD << 32 | packedNum;
 	_internal.toolsVersions.insert(combined);
 #endif
@@ -878,6 +880,7 @@ void Resolver::addInitialUndefines()
 
 void Resolver::resolveUndefines()
 {
+	_inputFiles.preParseLibraries();
 	// keep looping until no more undefines were added in last loop
 	unsigned int undefineGenCount = 0xFFFFFFFF;
 	while ( undefineGenCount != _symbolTable.updateCount() ) {
@@ -1175,7 +1178,7 @@ void Resolver::deadStripOptimize(bool force)
 	}
 	
 	// mark all roots as live, and all atoms they reference
-	for (std::set<const ld::Atom*>::iterator it=_deadStripRoots.begin(); it != _deadStripRoots.end(); ++it) {
+	for (LDOrderedSet<const ld::Atom*>::iterator it=_deadStripRoots.begin(); it != _deadStripRoots.end(); ++it) {
 		WhyLiveBackChain rootChain;
 		rootChain.previous = NULL;
 		rootChain.referer = *it;
@@ -1859,7 +1862,7 @@ void Resolver::linkTimeOptimize()
 		this->checkDylibSymbolCollisions();
 
 		// <rdar://problem/33853815> remove undefs from LTO objects that gets optimized away
-		std::unordered_set<const ld::Atom*> mustPreserve;
+		LDSet<const ld::Atom*> mustPreserve;
 		if ( _internal.classicBindingHelper != NULL )
 			mustPreserve.insert(_internal.classicBindingHelper);
 		if ( _internal.compressedFastBinderProxy != NULL )
@@ -1916,6 +1919,14 @@ void Resolver::buildArchivesList()
 	_inputFiles.archives(_internal);
 }
 
+/*void Resolver::dumpMembersParsed()
+{
+	std::ofstream stream;
+	stream.open(_options.cacheFilePath());
+	_inputFiles.dumpMembersParsed(stream);
+	stream.close();
+}*/
+
 void Resolver::dumpAtoms() 
 {
 	fprintf(stderr, "Resolver all atoms:\n");
@@ -1943,6 +1954,7 @@ void Resolver::resolve()
 	this->tweakWeakness();
     _symbolTable.checkDuplicateSymbols();
 	this->buildArchivesList();
+	//this->dumpMembersParsed();
 }
 
 

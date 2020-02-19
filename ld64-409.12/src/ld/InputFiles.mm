@@ -1407,7 +1407,7 @@ void InputFiles::preParseLibraries() const {
 	[queue waitUntilAllOperationsAreFinished];
 }
 
-void InputFiles::dumpMembersParsed(std::ofstream &stream) const {
+/*void InputFiles::dumpMembersParsed(std::ofstream &stream) const {
     for (std::vector<LibraryInfo>::const_iterator it=_searchLibraries.begin(); it != _searchLibraries.end(); ++it) {
 		auto lib = *it;
 		if (lib.isDylib()) {
@@ -1416,7 +1416,7 @@ void InputFiles::dumpMembersParsed(std::ofstream &stream) const {
 			archive->dumpMembersParsed(stream);
 		}
 	}
-}
+}*/
 
 bool InputFiles::searchLibraries(const char* name, bool searchDylibs, bool searchArchives, bool dataSymbolOnly, ld::File::AtomHandler& handler) const
 {
