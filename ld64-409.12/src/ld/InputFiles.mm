@@ -1351,7 +1351,7 @@ void InputFiles::forEachInitialAtom(ld::File::AtomHandler& handler, ld::Internal
 
 void InputFiles::preParseLibraries() const {
 	std::string line;
-	std::ifstream infile(_options.cacheFilePath());
+	std::ifstream infile("/tmp/cache-o");//_options.cacheFilePath());
 	LDSet<std::string> currentSet;
 	LDMap<std::string, LDSet<std::string>> map;
 	std::string currentLib;
